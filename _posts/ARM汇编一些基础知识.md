@@ -146,7 +146,7 @@ V（oVerflow）
 #### 4.2算术操作
 
 ```
-ADD R0,R1					 ; R0=R0+R1;
+ADD R0,R1				; R0=R0+R1;
 ADD R0, R1, R2          ; R0 = R1 + R2
 ADC R0, R1, R2          ; R0 = R1 + R2 + C(arry)
 SUB R0, R1, R2          ; R0 = R1 - R2
