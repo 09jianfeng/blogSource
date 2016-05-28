@@ -38,12 +38,14 @@ chmod +x /usr/bin/debugserver
 ```
 
 ## 用debugserver启动或附加进程
-### 启动进程
+### 启动进程 （一般用于从程序启动开始调试）
 ```
 格式：
 debugserver -x backboard IP:端口 executable文件地址
 例子：
 debugserver -x backboard *:1234 /Applications/MobileSMS.app/MobileSMS
+
+ps： 用这个方法启动的进程，用image list -o -f列举加载的模块，会发现只有dylib这个模块，要不停的敲入 ni（下一步），直到出现 error: invalid thread这个错误。再去 image list -o -f.
 ```
 上面的例子启动MobileSMS，并且开启1234端口，等待任意IP地址的LLDB接入。
 
