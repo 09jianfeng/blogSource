@@ -353,3 +353,21 @@ Label:
 "函数的前4个参数存放在R0到R3中，其他参数存放在栈中；返回值放在R0中"
 
 
+## 分析一个例子
+
+```
+// clang -arch armv7 -isysroot `xcrun --sdk iphoneos --show-
+sdk-path` -o MainBinary main.m
+#include <stdio.h>
+int main(int argc, char **argv)
+{
+    printf("%d, %d, %d, %d, %d", 1, 2, 3, 4, 5);
+    return 6;
+}
+```
+
+上面的代码拉到IDA，展示出来的汇编代码是下面这样的
+
+![arm assemble](../img/arm.png)
+
+BLX\_printf”执行printf函数，它的6个参数分别存放在R0、R1、R2、R3、[SP,#0x20+var\_20]和[SP,#0x20+var\_1C]中，返回值存放在R0里，其中var\_20=-0x20，var\_1C=-0x1C，因此栈上的2个参数分别位于[SP]和[SP,#0x4]。
