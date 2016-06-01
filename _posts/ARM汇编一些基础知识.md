@@ -64,6 +64,7 @@ bar:
 ```
 
 ## 二、部分特殊用途的寄存器
+[这里有比较详细的特殊寄存器用途](http://blog.csdn.net/tigerjibo/article/details/6050649)
 
 > - R0-R3 传递参数与返回值
 > - R7 帧指针，指向母函数与被调用子函数在栈中的交界
@@ -72,6 +73,8 @@ bar:
 > - R13 SP寄存器
 > - R14 LR寄存器，保存函数返回地址
 > - R15 PC寄存器
+
+
 
 ## 三、分支跳转与条件判断
 处理器中`PC`（program counter）的寄存器用于存放下一条指令的地址。
@@ -233,6 +236,7 @@ STR Rt, [Rn], #offset         ; *Rn = Rt; Rn = Rn + offset
 ```
 
 此外，LDR和SRT的变种LDRD和STRD还可以操作双字，即一次性操作2个寄存器，其基本格式如下：
+
 ```
 op{cond} Rt,Rt2,[Rn{,#offset}]
 ```

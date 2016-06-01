@@ -1,7 +1,7 @@
 ---
 title: Block的实现
 date: 2016-05-17 18:27:44
-tags:
+tags: [iOS,逆向]
 ---
 
 [block的实现](http://linlexus.com/implementation_of_block/)
@@ -32,23 +32,23 @@ static struct __main_block_desc_0 {
 ```
 其中我最关注的是 void *FuncPtr; 这个函数指针，因为他可以告诉我当dispatch_async(queue, block)执行之后，下一步的断点应该下在哪一行。看一下调用它的汇编代码吧
 
-![block1](../img/block1.png)
+![block1](/img/block1.png)
 
 dispatch_async(queue, block) 中共有两个参数，第一个queue是r0, 第二个参数是r1，结果r1直接被赋值了一个sp的地址。断点停留在0x2e66c上的时候，查看了一下r1寄存器的情况，如图所示：
 
-![block2](../img/block2.png)
+![block2](/img/block2.png)
 
 表明了r1是一个 NSStackBlock类型的对象（不知道这样描述是否正确），然后读取了一下0xa2fbfc这块的内存数据，如图：
 
-![block3](../img/block3.png)
+![block3](/img/block3.png)
 
 根据上面说的block的结构，第一个数据应该为 block的 isa指针，po一下，如图：
-![block4](../img/block4.png)
+![block4](/img/block4.png)
 
 然后依次推导，0xe469d就是block代码块的函数指针。于是从该位置下断点，发现确实程序从该处停下来了。
 再次验证，0xe469d - 0xb6000(ASLR) = 0x2e69d 
 
-![block5](../img/block5.png)
+![block5](/img/block5.png)
 
 正好也是函数开始的地方。这样整个dispatch_async(queue, block)中block的调用过程算是弄明白了，如何从dispatch_async切入，定位到第二个参数block的实现，也有章可循了。
 
