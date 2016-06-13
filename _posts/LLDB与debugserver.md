@@ -225,3 +225,108 @@ nexti 在执行下一步的时候不会进入函数体。
 (lldb) register write r0 1
 ```
 
+## 练习
+
+### 记一次 register read $r1 与 p (char *)r1 的区别
+
+```
+1 __text:00009EA8                 PUSH            {R4,R7,LR}
+2 __text:00009EAA                 ADD             R7, SP, #4
+3 __text:00009EAC                 SUB             SP, SP, #0x1C
+4 __text:00009EAE                 MOV             R1, #(selRef_navigationController - 0x9EBA) ; selRef_navigationController
+5 __text:00009EB6                 ADD             R1, PC ; selRef_navigationController
+6 __text:00009EB8                 MOV             R4, R0
+7 __text:00009EBA                 LDR             R1, [R1] ; "navigationController"
+8 __text:00009EBC                 BLX             _objc_msgSend
+```
+
+这段代码是从IDA上截图下来的，是UITableViewController的子类TableViewController的showSourcePressed:函数的前面8行代码。这段代码是Obective-C调用[tableViewController navigationController]转换后的汇编代码。
+
+断点打在第一行（打断点用lldb配合debugServer），分析、查看内存以及寄存器的值：
+
+* 触发断点后，控制台输出
+
+```
+-[TableViewController showSourcePressed:]:
+->  0xd8ea8 <+0>: push   {r4, r7, lr}
+    0xd8eaa <+2>: add    r7, sp, #0x4
+    0xd8eac <+4>: sub    sp, #0x1c
+    0xd8eae <+6>: movw   r1, #0xd1c6
+```
+r0 上放的是类指针， r1放的是函数名字符串指针。打印验证一下
+
+```
+(lldb) po $r0
+<TableViewController: 0x16691d00>
+
+(lldb) po (char *)$r1
+"showSourcePressed:"
+```
+
+* ni 继续跟踪
+
+```
+->  0xd8eae <+6>:  movw   r1, #0xd1c6
+    0xd8eb2 <+10>: movt   r1, #0x3
+    0xd8eb6 <+14>: add    r1, pc
+    0xd8eb8 <+16>: mov    r4, r0
+```
+
+[movt 指令](http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.dui0204ic/Cjagdjbf.html)是移动后面的立即数 #0x3 到 r1的高半字，不影响低半字。经过  movw   r1, #0xd1c6；movt   r1, #0x3；add    r1, pc；这三条指令的处理后打印一下。r1寄存器的值
+
+```
+->  0xd8eb8 <+16>: mov    r4, r0
+    0xd8eba <+18>: ldr    r1, [r1]
+    0xd8ebc <+20>: blx    0x10ee0c                  ; symbol stub for: objc_msgSend
+    0xd8ec0 <+24>: movw   r1, #0xdef4
+    
+(lldb) me r -s1 -fc -c21 0x00116080
+0x00116080: z\x12?'~\x06?'?\x9c\x02-?5\x10\0jL?'M
+(lldb) me r -s4 -fx -c4 0x00116080
+0x00116080: 0x27c9127a 0x27ca067e 0x2d029cd0 0x001035ed
+(lldb) re r $r1
+      r1 = 0x00116080  "navigationController"
+(lldb) p (char *)$r1
+(char *) $58 = 0x00116080 "z\x12\xffffffc9'~\x06\xffffffca'\xffffffd0\xffffff9c\x02-\xffffffed5\x10"
+
+```
+地址 0x00116080存放的是0x27c9127a。 其实0x27c9127a是一个指针，这里纠结了我很久，因为用p 打印不出来。但是用 re r读寄存器却能读出是字符串，令人好生怀疑。直到执行完  `ldr    r1, [r1]`后打印 r1的值，才恍然大悟。原来 register read 是可以识别 (char **) 然后输出指向的字符串。。
+
+```
+->  0xd8ebc <+20>: blx    0x10ee0c                  ; symbol stub for: objc_msgSend
+    0xd8ec0 <+24>: movw   r1, #0xdef4
+    0xd8ec4 <+28>: movt   r1, #0x3
+    0xd8ec8 <+32>: add    r1, pc
+(lldb) p (char *)$r1
+(char *) $60 = 0x27c9127a "navigationController"
+(lldb) re r $r1
+      r1 = 0x27c9127a  "navigationController"
+(lldb) me  r -s1 -fc -c21 0x27c9127a
+0x27c9127a: navigationController\0
+(lldb) 
+```
+
+
+
+# [lldb常用命令](http://www.cnblogs.com/wfwenchao/p/3991060.html) 
+
+## lldb p命令
+p打印变量的值， 打印出来默认是十进制的值。  p/t输出二进制，p/x输出16进制。
+
+## lldb po命令
+是打印对象的，就是调用对象的 description的函数
+
+## lldb re命令
+格式 `register read –format 寄存器`
+
+`register read 寄存器` 简写 `re r/x 寄存器` 读取寄存器的值, r/x 16进制来表示。 r/t是二进制 。
+`re r -a` 读取全部寄存器的内容
+
+## 内存读取 memory
+内存读取，从0xbffff3c0开始读，并且4字节 16进制 连续8个
+
+```
+(lldb) memory read -size 4 -format x -count 8 0x00116080
+(lldb) me r -s4 -fx -c8 0x00116080
+(lldb) x -s4 -fx -c8 0x00116080 
+```
