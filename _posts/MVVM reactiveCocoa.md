@@ -19,9 +19,8 @@ tags: [iOS,MVVM,设计模式]
 [ReactiveCocoa v2.5 源码解析之架构总览](http://blog.leichunfeng.com/blog/2015/12/25/reactivecocoa-v2-dot-5-yuan-ma-jie-xi-zhi-jia-gou-zong-lan/)
 
 
-# MVVM 学习过程的tips记录
+# MVVM 学习笔记
 
-* MVVM引用规则
 
 ```
 View引用了ViewModel，但反过来不行。
@@ -29,14 +28,27 @@ ViewModel引用了Model，但反过来不行。
 如果我们破坏了这些规则，便无法正确地使用MVVM。 
 ```
 
-*  优势
-
 ```
 轻量的视图：所有的UI逻辑都在ViewModel中。
 便于测试：我们可以在没有视图的情况下运行整个程序，这样大大地增加了它的可测试性。
 ```
 
+
+* MVVM是MVC模式的一个变种，它正逐渐流行起来
+* MVVM模式让View层代码变得更清晰，更易于测试
+* 严格遵守View=>ViewModel=>Model这样一个引用层次，然后通过绑定来将ViewModel的更新反映到View层上。
+* ViewModel层决不应该维护View的引用
+* ViewModel层可以看作是视图的模型(model-of-the-view)，它暴露属性，以直接反映视图的状态，以及执行用户交互相关的命令。
+* Model层暴露服务。
+* 针对MVVM程序的测试可以在没有UI的情况下运行。
+* ReactiveCocoa框架提供强大的机制来将ViewModel绑定到View。它同时也广泛地使用在ViewModel和Model层中。
+
+
 ## ReactiveCocoa 
+
+MVVM模式依赖于数据绑定，它是一个框架级别的特性，用于自动连接对象属性和UI控件。iOS没有数据绑定框架，幸运的是我们可以通过ReactiveCocoa来实现这一功能。我们从iOS开发的角度来看看MVVM模式，ViewController及其相关的UI(nib, stroyboard或纯代码的View)组成了View。
+
+ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.rac_textSignal;`）来表示UI状态，它同样暴露命令（`RACCommand`）来表示UI操作(通常是方法)。ViewModel负责管理基于用户交互的UI状态的改变。然而它不负责实际执行这些交互产生的的业务逻辑，那是Model的工作。
 
 ### 创建信号
 
@@ -241,11 +253,35 @@ ViewModel引用了Model，但反过来不行。
          }];
 ```
 
-## 用ReactiveCocoa 来实践 MVVM的设计模式 
+## 信号延迟，间隔时间内给机会反悔做决定是否发送
 
-MVVM模式依赖于数据绑定，它是一个框架级别的特性，用于自动连接对象属性和UI控件。iOS没有数据绑定框架，幸运的是我们可以通过ReactiveCocoa来实现这一功能。我们从iOS开发的角度来看看MVVM模式，ViewController及其相关的UI(nib, stroyboard或纯代码的View)组成了View。
+```
+/* 不用这个方法为了节流
+    RACSignal *fetchMetadata =
+    [RACObserve(self, isVisible)
+     filter:^BOOL(NSNumber *visible) {
+         return [visible boolValue];
+     }]; */
+    
+    // 1. 通过监听isVisible属性来创建信号。该信号发出的第一个next事件将包含这个属性的初始状态。
+    // 因为我们只关心这个值的改变，所以在第一个事件上调用skip操作。
+    RACSignal *visibleStateChanged = [RACObserve(self, isVisible) skip:1];
+    
+    // 2. 通过过滤visibleStateChanged信号来创建一个信号对，一个标识从可见到隐藏的转换，另一个标识从隐藏到可见的转换
+    RACSignal *visibleSignal = [visibleStateChanged filter:^BOOL(NSNumber *value) {
+        return [value boolValue];
+    }];
+    
+    RACSignal *hiddenSignal = [visibleStateChanged filter:^BOOL(NSNumber *value) {
+        return ![value boolValue];
+    }];
+    
+    // 3. 这里是最神奇的地方。通过延迟visibleSignal信号1秒钟来创建fetchMetadata信号，在获取元数据之前暂停一会。
+    // takeUntil操作确保如果cell在1秒的时间间隔内又一次隐藏时，来自visibleSignal的next事件被挂起且不获取元数据。
+    RACSignal *fetchMetadata = [[visibleSignal delay:1.0f]
+                                takeUntil:hiddenSignal];
+```
 
-ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.rac_textSignal;`）来表示UI状态，它同样暴露命令（`RACCommand`）来表示UI操作(通常是方法)。ViewModel负责管理基于用户交互的UI状态的改变。然而它不负责实际执行这些交互产生的的业务逻辑，那是Model的工作。
 
 
 
