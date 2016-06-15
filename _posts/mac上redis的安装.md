@@ -84,11 +84,11 @@ Cannot find autoconf. Please check your autoconf installation and the
 $PHP_AUTOCONF environment variable. Then, rerun this script.
 ```
 
-则需要修复一下
+则需要安装 m4,autoconf
 
 ```
-# cd /usr/src
-# wget http://ftp.gnu.org/gnu/m4/m4-1.4.16.tar.gz
+# cd /usr/local/src
+# sudo wget http://ftp.gnu.org/gnu/m4/m4-1.4.16.tar.gz
 # sudo tar -zvxf m4-1.4.16.tar.gz
 # cd m4-1.4.16/
 # sudo ./configure && make && make install
@@ -137,3 +137,72 @@ sudo cp php.ini.default php.ini
 然后 `vim /etc/php.ini` 在文件的最后添加 `extension=redis.so`
 
 运行 `php -m` 查看模块 有redis的话，就是配置成功了。
+
+
+
+### phpize 错误 
+
+```
+phpize
+grep: /usr/include/php/main/php.h: No such file or directory
+grep: /usr/include/php/Zend/zend_modules.h: No such file or directory
+grep: /usr/include/php/Zend/zend_extensions.h: No such file or directory
+Configuring for:
+PHP Api Version:
+Zend Module Api No:
+Zend Extension Api No:
+```
+
+这个错误可以通过安装下面的xcode 命令行，跟perl来解决
+
+## 安装memcache
+先安装 xcode 命令行
+
+```
+xcode-select --install
+```
+
+然后
+
+```
+sudo pecl install memcache
+```
+
+如果还没有安装pecl，则先安装pecl
+
+
+## 安装pecl
+下载执行安装命令
+
+```
+curl -O http://pear.php.net/go-pear.phar
+
+sudo php -d detect_unicode=0 go-pear.phar
+```
+
+选择1，输入 `/usr/local/pear`路径
+选择4，输入 `/usr/local/bin`路径
+按下 Enter
+添加到php.ini，Y
+
+就可以了。查看pear版本
+
+```
+ pear version
+```
+
+
+## 定时任务 crontab
+在mac上使用定时任务crontab的时候遇到了点问题。`crontab -e`编辑的定时任务，并不管用。 网上搜索后，有人说用 launchd 来代替 crontab。 [苹果官网文档](https://developer.apple.com/library/mac/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/ScheduledJobs.html)。
+
+```
+如果是出现错误：
+➜  ~ crontab -e
+crontab: no crontab for JFChen - using an empty one
+crontab: "/usr/bin/vi" exited with status 1
+
+则是因为vi不行，改用vim
+➜  ~ export EDITOR=vim
+
+```
+
