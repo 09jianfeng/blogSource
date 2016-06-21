@@ -1,6 +1,7 @@
 ---
 title: php开发APP接口笔记
 date: 2016-06-10 16:22:21
+categories: [php,后端]
 tags: [php,后端]
 ---
 

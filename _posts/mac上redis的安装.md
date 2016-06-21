@@ -1,7 +1,8 @@
 ---
 title: mac上redis的安装
 date: 2016-06-05 22:34:10
-tags: [php,数据库]
+categories: [后端,redis,缓存]
+tags: [redis,缓存,后端]
 ---
 
 ## 安装

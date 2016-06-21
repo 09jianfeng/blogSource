@@ -1,7 +1,8 @@
 ---
 title: '__bridge,__bridge_transfer,__bridge_retained'
 date: 2016-05-09 12:59:30
-tags:[iOS,Objective-C]
+categories: [iOS,Objective-C]
+tags: [iOS,Objective-C]
 ---
 
 ## 什么时候用到__bridge关键字

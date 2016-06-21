@@ -1,6 +1,7 @@
 ---
 title: Xcode Tips
 date: 2016-06-06 15:49:17
+categories: [Xcode,工具]
 tags: [Xcode,工具]
 ---
 

@@ -1,7 +1,8 @@
 ---
 title: runtime运用一、kvo实现原理
 date: 2016-05-25 11:09:21
-tags: [iOS,Runtime]
+categories: [iOS,Objective-C,Runtime]
+tags: [iOS,Objective-C,Runtime]
 ---
 
 ## 参考链接

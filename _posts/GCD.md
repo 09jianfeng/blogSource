@@ -1,6 +1,7 @@
 ---
 title: GCD
 date: 2016-06-15 15:45:12
+categories: [iOS,Objective-C,线程]
 tags: [iOS,线程]
 ---
 

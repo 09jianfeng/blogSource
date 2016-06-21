@@ -1,7 +1,8 @@
 ---
 title: runtime二、Method Swizzling、面向切面编程AOP
 date: 2016-05-31 10:25:07
-tags: [iOS,Runtime]
+categories: [iOS,Objective-C,Runtime]
+tags: [iOS,Objective-C,Runtime]
 ---
 
 # Method Swizzling

@@ -1,6 +1,7 @@
 ---
 title: 'viewDidLoad,initWithNib,loadView,awakeFromNib'
 date: 2016-05-10 15:21:08
+categories: [iOS,UIKit]
 tags: [iOS,UIKit]
 ---
 

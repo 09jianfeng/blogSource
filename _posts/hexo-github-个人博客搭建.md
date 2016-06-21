@@ -1,6 +1,7 @@
 ---
 title: hexo github 个人博客搭建
 date: 2016-03-17 17:29:51
+categories: [工具]
 tags: [工具]
 ---
 

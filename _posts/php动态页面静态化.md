@@ -1,6 +1,7 @@
 ---
 title: php动态页面静态化
 date: 2016-06-18 18:56:12
+categories: [php,后端]
 tags: [php,后端]
 ---
 

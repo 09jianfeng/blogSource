@@ -2,6 +2,7 @@
 ---
 title: NSURLProtocol 配hosts（内含例子）
 date: 2016-04-5 17:29:51
+categories: [iOS,Objective-C,网络]
 tags: [iOS,Objective-C,网络]
 ---
 一些需要配hosts的情形：

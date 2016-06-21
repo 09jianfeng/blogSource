@@ -1,7 +1,8 @@
 ---
 title: MVVM ReactiveCocoa.md
 date: 2016-06-03 09:53:28
-tags: [iOS,MVVM,设计模式]
+categories: [iOS,Objective-C,设计模式]
+tags: [iOS,Objective-C,设计模式]
 ---
 
 参考：

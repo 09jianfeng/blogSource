@@ -1,7 +1,8 @@
 ---
 title: yololib dylib注入
 date: 2016-05-06 14:22:17
-tags:
+categories: [iOS,逆向]
+tags: [iOS,逆向]
 ---
 
 ## 简介

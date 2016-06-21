@@ -1,7 +1,8 @@
 ---
 title: runtime 一、objc_msgSend消息详解
 date: 2016-05-24 10:11:37
-tags: [iOS,Runtime]
+categories: [iOS,Objective-C,Runtime]
+tags: [iOS,Objective-C,Runtime]
 ---
 
 [1]:http://blog.csdn.net/kesalin/article/details/6689226

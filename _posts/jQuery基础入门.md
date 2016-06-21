@@ -1,6 +1,7 @@
 ---
 title: jQuery基础入门
 date: 2016-06-18 21:22:11
+categories: [前端,jQuery]
 tags: [前端,jQuery]
 ---
 
