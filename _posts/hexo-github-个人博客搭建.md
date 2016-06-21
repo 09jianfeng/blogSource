@@ -71,3 +71,24 @@ hexo d
 ```
 
 发布成功
+
+
+## 主题
+NexT主题 <http://theme-next.iissnan.com/getting-started.html>
+
+### 标签
+```
+hexo new page "tags"
+```
+
+Then, add this line to source/tags/index.md that was created
+
+```
+type: "tags"
+```
+
+
+跟多信息看 next的 [主题wiki](https://github.com/iissnan/hexo-theme-next/wiki/)
+
+
+
