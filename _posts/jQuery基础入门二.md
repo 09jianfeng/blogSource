@@ -522,10 +522,124 @@ delay()方法的功能是设置一个延时值来推迟动画效果的执行，�
 
 从图中可以看出，当点击“序列化”按钮后，调用表单元素本身的serialize()方法，将表单中元素全部序列化，生成标准URL编码，各元素间通过&号相联。
 
+## 使用ajax()方法加载服务器数据
+使用ajax()方法是最底层、功能最强大的请求服务器数据的方法，它不仅可以获取服务器返回的数据，还能向服务器发送请求并传递数值，它的调用格式如下：
+
+`jQuery.ajax([settings])或$.ajax([settings])`
+
+其中参数settings为发送ajax请求时的配置对象，在该对象中，url表示服务器请求的路径，data为请求时传递的数据，dataType为服务器返回的数据类型，success为请求成功的执行的回调函数，type为发送数据请求的方式，默认为get， 设置是 method: "get"。
+
+例如，点击页面中的“加载”按钮，调用ajax()方法向服务器请求加载一个txt文件，并将返回的文件中的内容显示在页面，如下图所示：
+
+![871](../img/jqy871.jpg)
+
+在浏览器中显示的效果：
+
+![872](../img/jqy872.jpg)
+
+从图中可以看出，当点击“加载”按钮时，调用`$.ajax()`方法请求服务器中txt文件，当请求成功时调用success回调函数，获取传回的数据，并显示在页面中。
+
+## 使用ajaxSetup()方法设置全局Ajax默认选项
+使用ajaxSetup()方法可以设置Ajax请求的一些全局性选项值，设置完成后，后面的Ajax请求将不需要再添加这些选项值，它的调用格式为：
+
+`jQuery.ajaxSetup([options])或$.ajaxSetup([options])`
+
+可选项options参数为一个对象，通过该对象设置Ajax请求时的全局选项值。
+
+```
+    <body>
+        <div id="divtest">
+            <div class="title">
+                <span class="fl">奇偶性和是否大于0</span> 
+                <span class="fr">
+                    <input id="btnShow_1" type="button" value="验证1" />
+                    <input id="btnShow_2" type="button" value="验证2" />
+                </span>
+            </div>
+            <ul>
+               <li>请求输入一个数字 
+                   <input id="txtNumber" type="text" size="12" />
+               </li>
+            </ul>
+        </div>
+        
+        <script type="text/javascript">
+            $(function () {
+                $.ajaxSetup({
+                    dataType: "text",
+                    success: function (data) {
+                        $("ul").append("<li>你输入的<b>  "
+                            + $("#txtNumber").val() + " </b>是<b> "
+                            + data + " </b></li>");
+                    }
+                });
+                $("#btnShow_1").bind("click", function () {
+                    $.ajax({
+                        data: { num: $("#txtNumber").val() },
+                        url: "http://www.imooc.com/data/check.php"
+                    });
+                })
+                $("#btnShow_2").bind("click", function () {
+                    $.ajax({
+                        data: { num: $("#txtNumber").val() },
+                        url: "http://www.imooc.com/data/check_f.php"
+                    });
+                })
+            });
+        </script>
+    </body>
+```
+
+使用ajaxSetup()方法设置Ajax请求时的全局性配置选项，完成检测输入数据奇偶性和是否大于0的检测。
+
+## 使用ajaxStart()和ajaxStop()方法
+ajaxStart()和ajaxStop()方法是绑定Ajax事件。ajaxStart()方法用于在Ajax请求发出前触发函数，ajaxStop()方法用于在Ajax请求完成后触发函数。它们的调用格式为：
+
+`$(selector).ajaxStart(function())和$(selector).ajaxStop(function())`
+
+其中，两个方法中括号都是绑定的函数，当发送Ajax请求前执行ajaxStart()方法绑定的函数，请求成功后，执行ajaxStop ()方法绑定的函数。
 
 
+```
+    <body>
+        <div id="divtest">
+            <div class="title">
+                <span class="fl">加载一段文字</span> 
+                <span class="fr">
+                    <input id="btnShow" type="button" value="加载" />
+                </span>
+            </div>
+            <ul>
+               <li id="divload"></li>
+            </ul>
+        </div>
+        
+        <script type="text/javascript">
+            $(function () {
+                $("#divload").ajaxStart( function () {
+                    $(this).html("正在请求数据...");
+                });
+                $("#divload").ajaxStop( function () {
+                    $(this).html("数据请求完成！");
+                });
+                $("#btnShow").bind("click", function () {
+                    var $this = $(this);
+                    $.ajax({
+                        url: "http://www.imooc.com/data/info_f.php",
+                        dataType: "json",
+                        success: function (data) {
+                            $this.attr("disabled", "true");
+                        $("ul").append("<li>我的名字叫：" + data.name + "</li>");
+                        $("ul").append("<li>男朋友对我说：" + data.say + "</li>");
+                        }
+                    });
+                })
+            });
+        </script>
+    </body>
+```
 
-
+调用ajaxStart()和ajaxStop()方法绑定元素，当发送Ajax请求和结束请求时，在元素中显示不同的文字内容。
 
 
 
