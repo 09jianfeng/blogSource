@@ -162,12 +162,63 @@ btn.successBlockAction= ^() {
 
 ## dispatch source
 
-上面提到的 定时器其实就是一个事件源,是一个内置事件源
+上面提到的 定时器其实就是一个事件源,是一个内置事件源。事件源可以分为自定义事件源和内置事件源
 
 <https://developer.apple.com/library/ios/documentation/General/Conceptual/ConcurrencyProgrammingGuide/GCDWorkQueues/GCDWorkQueues.html#//apple_ref/doc/uid/TP40008091-CH103-SW1>
 
 
+**Reading Data from a Descriptor**
 
+To read data from a file or socket, you must open the file or socket and create a dispatch source of type DISPATCH_SOURCE_TYPE_READ. The event handler you specify should be capable of reading and processing the contents of the file descriptor. In the case of a file, this amounts to reading the file data (or a subset of that data) and creating the appropriate data structures for your application. For a network socket, this involves processing newly received network data.
 
+Whenever reading data, `you should always configure your descriptor to use non-blocking operations`. Although you can use the dispatch_source_get_data function to see how much data is available for reading, **the number returned by that function could change between the time you make the call and the time you actually read the data.** If the underlying file is truncated or a network error occurs, reading from a descriptor that blocks the current thread could stall your event handler in mid execution and prevent the dispatch queue from dispatching other tasks. For a serial queue, this could deadlock your queue, and even for a concurrent queue this reduces the number of new tasks that can be started.
+
+Listing 4-2 shows an example that configures a dispatch source to read data from a file. In this example, the event handler reads the entire contents of the specified file into a buffer and calls a custom function (that you would define in your own code) to process the data. (The caller of this function would use the returned dispatch source to cancel it once the read operation was completed.) To ensure that the dispatch queue does not block unnecessarily when there is no data to read, this example uses the fcntl function to configure the file descriptor to perform nonblocking operations. The cancellation handler installed on the dispatch source ensures that the file descriptor is closed after the data is read.
+
+```
+dispatch_source_t ProcessContentsOfFile(const char* filename)
+{
+   // Prepare the file for reading.
+   int fd = open(filename, O_RDONLY);
+   if (fd == -1)
+      return NULL;
+   fcntl(fd, F_SETFL, O_NONBLOCK);  // Avoid blocking the read operation
+ 
+   dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+   dispatch_source_t readSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ,
+                                   fd, 0, queue);
+   if (!readSource)
+   {
+      close(fd);
+      return NULL;
+   }
+ 
+   // Install the event handler
+   dispatch_source_set_event_handler(readSource, ^{
+      size_t estimated = dispatch_source_get_data(readSource) + 1;
+      // Read the data into a text buffer.
+      char* buffer = (char*)malloc(estimated);
+      if (buffer)
+      {
+         ssize_t actual = read(fd, buffer, (estimated));
+         Boolean done = MyProcessFileData(buffer, actual);  // Process the data.
+ 
+         // Release the buffer when done.
+         free(buffer);
+ 
+         // If there is no more data, cancel the source.
+         if (done)
+            dispatch_source_cancel(readSource);
+      }
+    });
+ 
+   // Install the cancellation handler
+   dispatch_source_set_cancel_handler(readSource, ^{close(fd);});
+ 
+   // Start reading the file.
+   dispatch_resume(readSource);
+   return readSource;
+}
+```
 
 

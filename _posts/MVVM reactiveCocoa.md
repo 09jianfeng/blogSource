@@ -18,8 +18,9 @@ tags: [iOS,MVVM,设计模式]
 
 [ReactiveCocoa v2.5 源码解析之架构总览](http://blog.leichunfeng.com/blog/2015/12/25/reactivecocoa-v2-dot-5-yuan-ma-jie-xi-zhi-jia-gou-zong-lan/)
 
+<http://www.jianshu.com/p/d262f2c55fbe#rd>
 
-# MVVM 学习笔记
+# MVVM
 
 
 ```
@@ -28,20 +29,17 @@ ViewModel引用了Model，但反过来不行。
 如果我们破坏了这些规则，便无法正确地使用MVVM。 
 ```
 
-```
-轻量的视图：所有的UI逻辑都在ViewModel中。
-便于测试：我们可以在没有视图的情况下运行整个程序，这样大大地增加了它的可测试性。
-```
+
+MVVM是MVC模式的一个变种，它正逐渐流行起来， MVVM模式让View层代码变得更清晰，更易于测试， 严格遵守View=>ViewModel=>Model这样一个引用层次，然后通过绑定来将ViewModel的更新反映到View层上。ViewModel层决不应该维护View的引用， ViewModel层可以看作是视图的模型(model-of-the-view)，它暴露属性，以直接反映视图的状态，以及执行用户交互相关的命令。 Model层暴露服务。 针对MVVM程序的测试可以在没有UI的情况下运行。
 
 
-* MVVM是MVC模式的一个变种，它正逐渐流行起来
-* MVVM模式让View层代码变得更清晰，更易于测试
-* 严格遵守View=>ViewModel=>Model这样一个引用层次，然后通过绑定来将ViewModel的更新反映到View层上。
-* ViewModel层决不应该维护View的引用
-* ViewModel层可以看作是视图的模型(model-of-the-view)，它暴露属性，以直接反映视图的状态，以及执行用户交互相关的命令。
-* Model层暴露服务。
-* 针对MVVM程序的测试可以在没有UI的情况下运行。
-* ReactiveCocoa框架提供强大的机制来将ViewModel绑定到View。它同时也广泛地使用在ViewModel和Model层中。
+* view ：由 MVC 中的 view 和 controller 组成，负责 UI 的展示，绑定 viewModel 中的属性，触发 viewModel 中的命令；
+
+* viewModel ：从 MVC 的 controller 中抽取出来的展示逻辑，负责从 model 中获取 view 所需的数据，转换成 view 可以展示的数据，并暴露公开的属性和命令供 view 进行绑定；
+
+* model ：与 MVC 中的 model 一致，包括数据模型、访问数据库的操作和网络请求等；
+
+* binder ：在 MVVM 中，声明式的数据和命令绑定是一个隐含的约定，它可以让开发者非常方便地实现 view 和 viewModel 的同步，避免编写大量繁杂的样板化代码。
 
 
 ## ReactiveCocoa 
@@ -51,6 +49,10 @@ MVVM模式依赖于数据绑定，它是一个框架级别的特性，用于自�
 ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.rac_textSignal;`）来表示UI状态，它同样暴露命令（`RACCommand`）来表示UI操作(通常是方法)。ViewModel负责管理基于用户交互的UI状态的改变。然而它不负责实际执行这些交互产生的的业务逻辑，那是Model的工作。
 
 ### 创建信号
+
+**信号**
+
+信号源代表的是随着时间而改变的值流，Streams of values over time。
 
 **`RACObserve`**创建信号
 
@@ -228,7 +230,7 @@ ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.
         }];
 ```
 
-### 从代理创建一个信号
+### 从代理创建一个信号以及其他异步行为
 
 有代理 `@protocol OFFlickrAPIRequestDelegate <NSObject>`方法 `- (void)flickrAPIRequest:(OFFlickrAPIRequest *)inRequest didCompleteWithResponse:(NSDictionary *)inResponseDictionary;`。可以这样来通过代理创建信号,
 
@@ -251,6 +253,37 @@ ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.
              [subscriber sendNext:x];
              [subscriber sendCompleted];
          }];
+```
+
+**其他的异步行为**
+
+```
+// 代理方法
+[[self
+    rac_signalForSelector:@selector(webViewDidStartLoad:)
+    fromProtocol:@protocol(UIWebViewDelegate)]
+    subscribeNext:^(id x) {
+        // 实现 webViewDidStartLoad: 代理方法
+    }];
+
+// target-action
+[[self.avatarButton
+    rac_signalForControlEvents:UIControlEventTouchUpInside]
+    subscribeNext:^(UIButton *avatarButton) {
+        // avatarButton 被点击了
+    }];
+
+// 通知
+[[[NSNotificationCenter defaultCenter]
+    rac_addObserverForName:kReachabilityChangedNotification object:nil]
+    subscribeNext:^(NSNotification *notification) {
+        // 收到 kReachabilityChangedNotification 通知
+    }];
+
+// KVO
+[RACObserve(self, username) subscribeNext:^(NSString *username) {
+    // 用户名发生了变化
+}];
 ```
 
 ## 信号延迟，间隔时间内给机会反悔做决定是否发送
@@ -283,5 +316,35 @@ ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.
 ```
 
 
+## 多个信号合并成一个信号
 
+```
+- (RACSignal *)flickrImageMetadata:(NSString *)photoId {
+    
+    //请求收藏数
+    RACSignal *favorites = [self signalFromAPIMethod:@"flickr.photos.getFavorites"
+                                           arguments:@{@"photo_id": photoId}
+                                           transform:^id(NSDictionary *response) {
+                                               NSString *total = [response valueForKeyPath:@"photo.total"];
+                                               return total;
+                                           }];
+    
+    //请求评论数
+    RACSignal *comments = [self signalFromAPIMethod:@"flickr.photos.getInfo"
+                                          arguments:@{@"photo_id": photoId}
+                                          transform:^id(NSDictionary *response) {
+                                              NSString *total = [response valueForKeyPath:@"photo.comments._text"];
+                                              return total;
+                                          }];
+    
+    //一旦创建了两个信号，combineLatest:reduce:方法生成一个新的信号来组合两者。
+    //这个方法等待源信号的一个next事件。reduce块使用它们的内容来调用，其结果变成联合信号的next事件。
+    return [RACSignal combineLatest:@[favorites, comments] reduce:^id(NSString *favs, NSString *coms){
+        RWTFlickrPhotoMetadata *meta = [RWTFlickrPhotoMetadata new];
+        meta.comments = [coms integerValue];
+        meta.favorites = [favs integerValue];
+        return  meta;
+    }];
+}
+```
 
