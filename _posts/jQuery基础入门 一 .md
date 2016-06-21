@@ -1,5 +1,5 @@
 ---
-title: jQuery基础入门
+title: jQuery基础入门 一
 date: 2016-06-18 21:22:11
 categories: [前端,jQuery]
 tags: [前端,jQuery]
@@ -8,6 +8,7 @@ tags: [前端,jQuery]
 参考资料：
 
 [慕课网 jQuery基础](http://www.imooc.com/learn/11)
+
 
 # jQuery环境配置
 去官网<http://jquery.com>下载最新的 jQuery库。
@@ -539,6 +540,344 @@ index.html
 `$(selector).wrap(wrapper)`和`$(selector).wrapInner(wrapper)`
 
 参数`selector`为被包裹的元素，`wrapper`参数为包裹元素的格式。
+
+```
+    <body>
+        <h3>使用wrapInner()方法包裹元素</h3>
+        <span class="red" title='hi'>我的身体有点歪</span>
+        
+        <script type="text/javascript">
+            $(".red").wrapInner("<i><i>");
+        </script>
+    </body>
+```
+
+例子调用wrapInner()方法将页面中的`<span>`元素内的文字字体变成斜体。
+
+## 使用each()方法遍历元素
+使用`each()`方法可以遍历指定的元素集合，在遍历时，通过回调函数返回遍历元素的序列号，它的调用格式为：
+
+`$(selector).each(function(index))`
+
+参数function为遍历时的回调函数，index为遍历元素的序列号，它从0开始。
+
+```
+    <body>
+        <h3>使用each()方法遍历元素</h3>
+        <span class="green">香蕉</span>
+        <span class="green">桃子</span>
+        <span class="green">葡萄</span>
+        <span class="green">荔枝</span>
+        
+        <script type="text/javascript">
+            $("span").each(function (index) {
+                if (index == 1) {
+                    $(this).attr("class", "red");
+                }
+            });
+        </script>
+    </body>
+```
+
+
+通过each()遍历方法，改变第2个元素<span>元素的背景色为红色。
+
+## 使用remove()和empty()方法删除元素
+`remove()`方法删除所选元素本身和子元素，该方法可以通过添加过滤参数指定需要删除的某些元素，而`empty()`方法则只删除所选元素的子元素。
+
+```
+    <body>
+        <h3>使用empty()方法删除元素</h3>
+        <span class="green">香蕉</span>
+        <span class="red">桃子</span>
+        <span class="green">葡萄</span>
+        <span class="green">荔枝</span>
+        
+        <script type="text/javascript">
+            $("span").empty()
+            $("span").remove(".red")
+        </script>
+    </body>
+```
+
+使用empty()方法删除全部<span>元素的子元素内容,删除css类为 red的元素
+
+# jQuery事件与应用
+## 页面加载时触发ready()事件
+`ready()`事件类似于`onLoad()`事件，但前者只要页面的DOM结构加载后便触发，而后者必须在页面全部元素加载成功才触发，`ready()`可以写多个，按顺序执行。此外，下列写法是相等的：
+
+`$(document).ready(function(){})`等价于`$(function(){})`;
+
+
+例如，当触发页面的`ready()`事件时，在`<div>`元素中显示一句话。如下图所示：
+
+![611](../img/jqy611.jpg)
+
+在浏览器中显示的效果：
+
+![612](../img/jqy612.jpg)
+
+从图中可以看出，当页面的DOM框架完成加载后，便触发ready()事件，在该事件中，通过id号为“tip”的元素，调用html()方法在页面中显示一段字符。
+
+## 使用bind()方法绑定元素的事件
+`bind()`方法绑定元素的事件非常方便，绑定前，需要知道被绑定的元素名，绑定的事件名称，事件中执行的函数内容就可以，它的绑定格式如下：
+
+`$(selector).bind(event,[data] function)`
+
+参数`event`为事件名称，多个事件名称用空格隔开，`function`为事件执行的函数。
+
+```
+    <body>
+        <h3>页面载入时触发ready()事件</h3>
+        <div id="tip"></div>
+        <input id="btntest" type="button" value="点下我" />
+        
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $("#btntest").bind("click", function () {
+                    $("#tip").html("我被点击了！");
+                });
+            });
+        </script>
+    </body>
+```
+
+在ready()事件中，绑定一个按钮的单击事件。
+
+```
+    <body>
+        <h3>bind()方法绑多个事件</h3>
+        <input id="btntest" type="button" value="点击或移出就不可用了" />
+        
+        <script type="text/javascript">
+            $(function () {
+                $("#btntest").bind("click mouseout", function () {
+                    $(this).attr("disabled", "true");
+                })
+            });
+        </script>
+    </body>
+```
+
+使用bind()方法绑定单击(click)和鼠标移出(mouseout)这两个事件，触发这两个事件中，按钮将变为不可用。
+
+
+## 使用hover()方法切换事件
+hover()方法的功能是当鼠标移到所选元素上时，执行方法中的第一个函数，鼠标移出时，执行方法中的第二个函数，实现事件的切实效果，调用格式如下：
+
+`$(selector).hover(over，out);`
+
+over参数为移到所选元素上触发的函数，out参数为移出元素时触发的函数。
+
+```
+    <body>
+        <h3>hover()方法切换事件</h3>
+        <div>别走！你就是土豪</div>
+        
+        <script type="text/javascript">
+            $(function () {
+                $("div").hover(
+                function () {
+                    $(this).addClass("orange");
+                },
+                function () {
+                    $(this).removeClass("orange")
+                })
+            });
+        </script>
+    </body>
+```
+
+调用hover方法实现元素`<div>别走！你就是土豪</div>`背景色的切换。
+
+## 使用toggle()方法绑定多个函数
+toggle()方法可以在元素的click事件中绑定两个或两个以上的函数，同时，它还可以实现元素的隐藏与显示的切换，绑定多个函数的调用格式如下：
+
+`$(selector).toggle(fun1(),fun2(),funN(),...)`
+
+其中，fun1，fun2就是多个函数的名称
+
+```
+    <body>
+        <h3>toggle()方法绑定多个函数</h3>
+        <input id="btntest" type="button" value="点一下我" />
+        <div>我是动态显示的</div>
+        
+        <script type="text/javascript">
+            $(function () {
+                $("#btntest").bind("click", function () {
+                    $("div").toggle();
+                });
+            });
+        </script>
+    </body>
+```
+
+上面的代码例子是，使用toggle()方法控制元素的显示与隐藏属性,toggle()函数不传入参数的时候实现这个效果。
+
+```
+    <body>
+        <h3>toggle()方法绑定多个函数</h3>
+        <input id="btntest" type="button" value="点一下我" />
+        <div>我是动态显示的</div>
+        
+        <script type="text/javascript">
+            $(function () {
+                $("div").toggle(function(){
+                    $(this).html("aaa");
+                },function(){
+                    $(this).html("bbb");
+                },function(){
+                    $(this).html("ccc");
+                });
+            });
+        </script>
+    </body>
+```
+
+上面的代码例子是，toggle()函数传入参数，实现点击div元素，内容不断切换 aaa->bbb->ccc->aaa...
+
+## unbind()
+解除绑定的事件。
+
+```
+    <body>
+        <h3>unbind()移除绑定的事件</h3>
+        <input id="btntest" type="button" value="移除事件" />
+        <div>土豪，咱们交个朋友吧</div>
+        
+        <script type="text/javascript">
+            $(function () {
+                $("div").bind("click",
+	                function () {
+	                    $(this).removeClass("backcolor").addClass("color");
+	                }).bind("dblclick", function () {
+	                    $(this).removeClass("color").addClass("backcolor");
+	             });
+	                
+                $("#btntest").bind("click", function () {
+                    $("div").unbind(;
+                    $(this).attr("disabled", "true");
+                });
+            });
+        </script>
+    </body>
+```
+
+解除 div绑定的所有事件
+
+
+## 使用one()方法绑定元素的一次性事件
+one()方法可以绑定元素任何有效的事件，但这种方法绑定的事件只会触发一次，它的调用格式如下：
+
+`$(selector).one(event,[data],fun)`
+
+参数event为事件名称，data为触发事件时携带的数据，fun为触发该事件时执行的函数。
+
+```
+    <body>
+        <h3>one()方法执行一次绑定事件</h3>
+        <div>请点击我一下</div>
+        
+        <script type="text/javascript">
+            $(function () {
+                var intI = 0;
+                $("div").one("click", function () {
+                    intI++;
+                    $(this).css("font-size", intI + "px");
+                })
+            });
+        </script>
+    </body>
+```
+
+点击 div会缩到最小，one里面的代码只会执行一次。
+
+## 调用trigger()方法手动触发指定的事件
+trigger()方法可以直接手动触发元素指定的事件，这些事件可以是元素自带事件，也可以是自定义的事件，总之，该事件必须能执行，它的调用格式为：
+
+`$(selector).trigger(event)`
+
+其中event参数为需要手动触发的事件名称。
+
+```
+    <body>
+        <h3>trigger()手动触发事件</h3>
+        <div>土豪，咱们交个朋友吧</div>
+        
+        <script type="text/javascript">
+            $(function () {
+                $("div").bind("change-color", function () {
+                    $(this).addClass("color");
+                });
+                $("div").trigger("change-color");
+            });
+        </script>
+    </body>
+```
+
+例如 在Ready事件中调用 trigger 触发 change-color这个事件
+
+## 文本框的focus和blur事件
+focus事件在元素获取焦点时触发，如点击文本框时，触发该事件；而blur事件则在元素丢失焦点时触发，如点击除文本框的任何元素，都会触发该事件。
+
+例如，在触发文本框的“focus”事件时，<div>元素显示提示内容，如下图所示：
+
+![681](../img/jqy681.jpg)
+
+在浏览器中显示的效果：
+
+![682](../img/jqy682.jpg)
+
+从图中可以看出，当点击文本框时，触发文本框的“focus”事件，在该事件中，页面中的`<div>`元素显示提示信息。 绑定的 blur事件就是当离开文本框的时候，显示的信息。例如： 
+
+```
+$("input").bind("blur", function () {
+                    if ($(this).val().length == 0)
+                        $("div").html("你的名称不能为空！");
+                })
+```
+
+
+## 下拉列表框的change事件
+当一个元素的值发生变化时，将会触发change事件，例如在选择下拉列表框中的选项时，就会触change事件。
+
+```
+    <body>
+        <h3>下拉列表的change事件</h3>
+        <select id="seltest">
+            <option value="葡萄">葡萄</option>
+            <option value="苹果">苹果</option>
+            <option value="荔枝">荔枝</option>
+            <option value="香焦">香焦</option>
+        </select>
+        
+        <script type="text/javascript">
+            $(function () {
+                $("select").bind("change", function () {
+                    if ($(this).val() == "苹果")
+                        $(this).css("background-color", "red");
+                    else
+                        $(this).css("background-color", "green");
+                })
+            });
+        </script>
+    </body>
+```
+
+如果下拉选中的是苹果，则背景是红色。否则是绿色
+
+## 调用live()方法绑定元素的事件
+与bind()方法相同，live()方法与可以绑定元素的可执行事件，除此相同功能之外，live()方法还可以绑定动态元素，即使用代码添加的元素事件，格式如下：
+
+`$(selector).live(event,[data],fun)`
+
+参数event为事件名称，data为触发事件时携带的数据，fun为触发该事件时执行的函数。
+
+`jQuery 1.9以后不再支持 live()` 来绑定事件
+
+
+
 
 
 
