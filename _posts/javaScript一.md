@@ -1,5 +1,5 @@
 ---
-title: javaScript一
+title: javaScript一、事件、内置对象
 date: 2016-06-30 16:17:32
 tags: [前端,javaScript]
 ---
