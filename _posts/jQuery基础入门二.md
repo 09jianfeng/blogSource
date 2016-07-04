@@ -1,8 +1,12 @@
 ---
-title: jQuery基础入门二
+title: jQuery基础入门二-动画、ajax
 date: 2016-06-20 23:03:03
+categories: [前端,jQuery]
 tags: [前端,jQuery]
 ---
+
+参考链接：
+<http://www.imooc.com/learn/11>
 
 # 动画特效
 ## 调用show()和hide()方法显示和隐藏元素
@@ -640,6 +644,14 @@ ajaxStart()和ajaxStop()方法是绑定Ajax事件。ajaxStart()方法用于在Aj
 ```
 
 调用ajaxStart()和ajaxStop()方法绑定元素，当发送Ajax请求和结束请求时，在元素中显示不同的文字内容。
+
+
+
+
+
+
+
+
 
 
 
