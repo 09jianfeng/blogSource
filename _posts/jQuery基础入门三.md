@@ -318,10 +318,234 @@ selector参数为选项卡整体外围元素，该元素包含选项卡标题与
 selector参数为显示弹出对话框的元素，通常为`<div>`，options参数为方法的配置对象，在对象中可以设置对话框类型、“确定”、“取消”按钮执行的代码等。
 
 
+```
+    <body>
+        <div id="divtest">
+            <div class="content">
+                <span id="spnName" class="fl">张三</span>
+                <input id="btnDelete" type="button" value="删除"  class="fr"/>
+            </div>
+            <div id='dialog-modal'></div>
+        </div>
+        
+        <script type="text/javascript">
+            $(function () {
+                $("#btnDelete").bind("click", function () { //询问按钮事件
+                    if ($("#spnName").html() != null) { //如果对象不为空
+                        sys_Confirm("您真的要删除该条记录吗？");
+                        return false;
+                    }
+                });
+            });
+            function sys_Confirm(content) { //弹出询问信息窗口
+                $("#dialog-modal").dialog({
+                    height: 140,
+                    modal: true,
+                    title: '系统提示',
+                    hide: 'slide',
+                    buttons: {
+                        '确定': function () {
+                            $("#spnName").remove();
+                            $(this).dialog("close");
+                        },
+                        '取消': function () {
+                            $(this).dialog("close");
+                        }
+                    },
+                    open: function (event, ui) {
+                        $(this).html("");
+                        $(this).append("<p>" + content + "</p>");
+                    }
+                });
+            }
+        </script>
+    </body>
+```
 
 
 
+## 菜单工具插件——menu
+菜单工具插件可以通过`<ul>`创建多级内联或弹出式菜单，支持通过键盘方向键控制菜单滑动，允许为菜单的各个选项添加图标，调用格式如下：
+
+`$(selector).menu({options});`
+
+selector参数为菜单列表中最外层`<ul>`元素，options为menu()方法的配置对象。
+
+例子：
+
+```
+    <body>
+        <ul id="menu">
+            <li><a href="#">小明一中</a>
+                <ul>
+                    <li><a href="#">高中部</a>
+                        <ul>
+                            <li><a href="#">高一(1)班</a></li>
+                            <li><a href="#">高一(2)班</a></li>
+                            <li><a href="#">高一(3)班</a>
+                                <ul>
+                                    <li><a href="#">小胡</a></li>
+                                    <li><a href="#">小李</a></li>
+                                    <li><a href="#">小陈</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><a href="#">初中部</a>
+                        <ul>
+                            <li><a href="#">初一(1)班</a></li>
+                            <li><a href="#">初一(2)班</a></li>
+                            <li><a href="#">初一(3)班</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#">教研部</a></li>
+                </ul>
+            </li>
+            <li class="ui-state-disabled"><a href="#">大明二中</a></li>
+        </ul>
+        
+        <script type="text/javascript">
+            $(function () {
+                $("#menu").menu();
+            });
+        </script>
+    </body>
+```
 
 
+## 微调按钮插件——spinner
+微调按钮插件不仅能在文本框中直接输入数值，还可以通过点击输入框右侧的上下按钮修改输入框的值，还支持键盘的上下方向键改变输入值，调用格式如下：
+
+`$(selector).spinner({options});`
+
+selector参数为文本输入框元素，可选项options参数为spinner()方法的配置对象，在该对象中，可以设置输入的最大、最小值，获取改变值和设置对应事件。
+
+
+例如，将页面中的三个输入文本框都与微调插件相绑定，当改变三个文本框值时，对应的<div>元素的背景色也将随之发生变化，如下图所示：
+
+![1081](../img/jqu1081.jpg)
+
+在浏览器中显示的效果：
+
+![1082](../img/jqy1082.jpg)
+
+从图中可以看出，由于三个文本框输入元素都绑定微调插件，因此，无论是点击右侧的上下按钮，还是直接在文本框中输入值，都可以改变`<div>`元素的背景色。
+
+## 工具提示插件——tooltip
+工具提示插件可以定制元素的提示外观，提示内容支持变量、Ajax远程获取，还可以自定义提示内容显示的位置，它的调用格式如下：
+
+`$(selector).tooltip({options});`
+
+其中selector为需要显示提示信息的元素，可选项参数options为tooltip()方法的配置对象，在该对象中，可以设置提示信息的弹出、隐藏时的效果和所在位置。
+
+```
+<body>
+        <div id="divtest">
+            <div class="title">
+                工具提示插件</div>
+            <div class="content">
+                <div>
+                    <label for="name">
+                        姓名</label>
+                    <input id="name" name="name" title="我是土豪，欢迎与我做朋友" />
+                </div>
+            </div>
+        </div>
+        
+        <script type="text/javascript">
+            $(function () {
+                $("#name").tooltip({
+                    show: {
+                        effect: "slideDown",
+                        delay: 350
+                    },
+                    hide: {
+                        effect: "explode",
+                        delay: 350
+                    },
+                    position: {
+                        my: "left top",
+                        at: "left bottom"
+                    }
+                });
+            });
+        </script>
+    </body>
+```
+
+
+# 工具类函数
+
+在jQuery中，通过`$.browser`对象可以获取浏览器的名称和版本信息，如`$.browser.chrome`为true，表示当前为Chrome浏览器，`$.browser.mozilla`为true，表示当前为火狐浏览器，还可以通过`$.browser.version`方式获取浏览器版本信息
+
+```
+    <body>
+        <div id="divtest">
+            <div class="title">
+                <span class="fl">获取浏览器名称和版本号</span> 
+            </div>
+            <div class="content"></div>
+        </div>
+        
+        <script type="text/javascript">
+            $(function () {
+                var strTmp = "您的浏览器名称是：";
+                if ($.browser.chrome) { //谷歌浏览器
+                    strTmp += "Chrome";
+                }
+                if ($.browser.mozilla) { //火狐相关浏览器
+                    strTmp += "Mozilla FireFox";
+                }
+                strTmp += "<br /><br /> 版本号是：" //获取版本号
+                       +$.browser.version;
+                $(".content").html(strTmp);
+            });
+        </script>
+    </body>
+```
+
+
+
+## 检测浏览器是否属于W3C盒子模型
+浏览器的盒子模型分为两类，一类为标准的w3c盒子模型，另一类为IE盒子模型，两者区别为在Width和Height这两个属性值中是否包含padding和border的值，w3c盒子模型不包含，IE盒子模型则包含，而在jQuery 中，可以通过`$.support.boxModel`对象返回的值，检测浏览器是否属于标准的w3c盒子模型。
+
+```
+    <body>
+        <div id="divtest">
+            <div class="title">
+                <span class="fl">检测是否是盒子模型</span> 
+            </div>
+            <div class="content"></div>
+        </div>
+        
+        <script type="text/javascript">
+            $(function () {
+                var strTmp = "您打开的页面是：";
+                if ($.support.boxModel) { //是W3C盒子模型
+                    strTmp += "W3C盒子模型";
+                }
+                else { //是IE盒子模型
+                    strTmp += "IE盒子模型";
+                }
+                $(".content").html(strTmp);
+            });
+        </script>
+    </body>
+```
+
+
+## 检测对象是否为空
+在jQuery中，可以调用名为`$.isEmptyObject`的工具函数，检测一个对象的内容是否为空，如果为空，则该函数返回true，否则，返回false值，调用格式如下：
+
+`$.isEmptyObject(obj);`
+
+其中，参数obj表示需要检测的对象名称。
+
+## 检测对象是否是原始对象
+调用名为`$.isPlainObject`的工具函数，能检测对象是否为通过{}或new Object()关键字创建的原始对象，如果是，返回true，否则，返回false值，调用格式为：
+
+`$.isPlainObject (obj);`
+
+其中，参数obj表示需要检测的对象名称。
 
 
