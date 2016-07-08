@@ -10,19 +10,19 @@ tags: [iOS,Objective-C,Runtime]
 [3]:http://www.cocoachina.com/ios/20130528/6295.html
 [4]:http://blog.cnbang.net/tech/2808/
 [5]:http://ui.ptlogin2.qq.com/cgi-bin/login?low_login=1&appid=603049403&s_url=http%3A%2F%2Fbugly.qq.com%2Fblog%2F%3Fp%3D64&daid=276
-### 参考资料
+## 参考资料
 [1、罗朝辉 深入浅出 Cocoa 之消息][1]
 [2、Objective-C 中的元类（meta class）是什么？][2]
 [3、小萝莉说crash][5]
 
-## 基本概念与原理
-###Class
+# 基本概念与原理
+##Class
 Class 在objc/objc.h中的定义：
 
 ```
 typedef struct objc_class *Class;
 ```
-### objc_class的结构
+## objc_class的结构
 Class 被定义为一个指向 objc_class的结构体指针，这个结构体表示每一个类的类结构。而 objc_class 在objc/objc_class.h中定义如下:
 
 ```
@@ -42,7 +42,7 @@ struct objc_class {
 每个对象都有类。这是面向对象的基本概念，但是在Objective-C中，它对数据结构也一样。含有一个指针且该指针可以正确指向类的数据结构，都可以被视作为对象。
 在Objective-C中，对象的类是isa指针决定的。isa指针指向对象所属的类。
 
-### objc_msgSend对这个Class结构的应用：
+## objc_msgSend对这个Class结构的应用：
 objc_msgSend方法含有两个必要的参数：receiver、方法名（即：selector），如：
 
 ```
@@ -66,24 +66,24 @@ MyPointsManager *pointsManager = [MyPointsManager sharedInstance];
     NSLog(@"isEnabled %d",isEnabled);
 ```
 
-#### objc_msgSend调用类方法跟实例方法的调用实现区别：
-##### 在oc里，+号函数和-号函数的区别：
+### objc_msgSend调用类方法跟实例方法的调用实现区别：
+#### 在oc里，+号函数和-号函数的区别：
 -(void)是实例方法，只有定义了这个类的实例，才能用实例调用这个方法。
 +(void)是类方法，用类名可以直接调用这个方法。
 通过分析，+号函数是基类调用的，-号函数是实例类调用的。其函数结构体数组的位置也不一样。 
 
-##### 1、实例方法调用：
+#### 1、实例方法调用：
 每个对象都有一个指向所属类的指针``isa``。通过该指针，对象可以找到它所属的类，也就找到了其全部父类。当向一个对象发送消息时，objc_msgSend方法根据对象的isa指针找到对象的类，然后在类的``调度表（dispatch table）``中查找selector。如果无法找到selector，objc_msgSend通过指向父类的指针找到父类，并在父类的调度表（dispatch table）中查找selector，以此类推直到NSObject类。一旦查找到selector，``objc_msgSend方法根据调度表的内存地址调用该实现``。 通过这种方式，message与方法的真正实现在执行阶段才绑定。
 为了保证消息发送与执行的效率，系统会将全部selector和使用过的方法的内存地址缓存起来。``每个类都有一个独立的缓存，缓存包含有当前类自己的 selector以及继承自父类的selector``。查找调度表（dispatch table）前，消息发送系统首先检查receiver对象的缓存。
 
-##### 2、类方法的调用：
+#### 2、类方法的调用：
 从Class的结构可以看出，Class中也有一个isa指针，指向实现它的类，即[元类（metaClass）][2]。Objective-C中的每个类都有和自己相关的元类，类方法就是放在元类的函数指针数组中。元类也是一个对象，那么元类又指向哪里呢？为了设计上的完整，所有的元类的isa指针都会指向一个根元类。元类的继承关系跟类的继承关系是一样的。
 
 简单说就是：
 当你给对象发送消息时，消息是在寻找这个对象的类的方法列表。
 当你给类发消息时，消息是在寻找这个类的元类的方法列表。
 
-### objc_class结构里面的方法链表的Method结构
+## objc_class结构里面的方法链表的Method结构
  Method 在头文件 objc_class.h中定义如下：
  
 ```
@@ -96,7 +96,7 @@ typedef struct objc_ method {
 ```
 一个方法 Method，其包含一个方法选标 SEL – 表示该方法的名称，一个types – 表示该方法参数的类型，一个 IMP  - 指向该方法的具体实现的函数指针
 
-### Method结构中SEL的含义
+## Method结构中SEL的含义
 SEL在objc/objc.h中的定义为：
 
 ```
@@ -105,7 +105,7 @@ typedef struct objc_selector   *SEL;
 它是一个指向 objc_selector 指针，表示方法的名字/签名。
 不同的类可以拥有相同的 selector，这个没有问题，因为不同类的实例对象performSelector相同的 selector 时，会在各自的消息选标(selector)/实现地址(address) 方法链表中根据 selector 去查找具体的方法实现IMP, 然后用这个方法实现去执行具体的实现代码。这是一个动态绑定的过程，在编译的时候，我们不知道最终会执行哪一些代码，只有在执行的时候，通过selector去查询，我们才能确定具体的执行代码。
 
-### Method结构中的IMP 的含义
+## Method结构中的IMP 的含义
 IMP在objc／objc.h中的定义为：
 typedef id (*IMP)(id, SEL, ...);
 
@@ -123,7 +123,7 @@ for (i = 0; i < 1000; i++)
     setter(targetList[i], @selector(setFilled:), YES);
 ```
 
-### 查找IMP的过程
+## 查找IMP的过程
 说objc_class结构的时候说过，objc_msgSend 会根据方法选标 SEL 在类结构的方法列表中查找方法实现IMP。这里头有一些文章，我们在前面的类结构中也看到有一个叫objc_cache *cache 的成员，这个缓存为提高效率而存在的。每个类都有一个独立的缓存，同时包括继承的方法和在该类中定义的方法。。
 
 下面这段是苹果官方的运行时源码
@@ -153,12 +153,12 @@ static Method look_up_method(Class cls, SEL sel,
 5、如果动态方法决议没能解决问题，进入下面要讲的消息转发流程。
 
 
-## 消息转发机制
+# 消息转发机制
 对象在函数列表中找不到SEL或者找不到SEL对应的IMP实现的时候就会进入消息转发流程。流程如下：
 
 ![objc](../img/objc_msg1.jpeg)
 
-### +(BOOL)resolveInstanceMethod:(SEL)sel  方法拦截消息
+## +(BOOL)resolveInstanceMethod:(SEL)sel  方法拦截消息
 这个消息拦截的作用在于给个机会给本对象动态添加需要的selector。
 先来看个例子：
 
@@ -192,6 +192,7 @@ Fish类：
       
     return [super resolveInstanceMethod:sel];  
 }  
+
 @end  
 ```
 调用：
@@ -203,8 +204,36 @@ Fish *fish = [[Fish alloc] init];
 
 程序不会崩溃并且输出：_fishMethodNotExit。找不到fishMethodNotExit的时候，系统调用了 resolveInstanceMethod，并且给找不到的SEL动态添加了IMP，使得调用_fishMethodNotExit这个函数。
 
+resolveInstanceMethod:方法常常用来实现 @dynamic属性。
 
-### -(id)forwardingTargetForSelector:(SEL)aSelector 拦截消息并且处理
+```
+id autoDictionaryGetter(id self,SEL _cmd);
+void autoDictionarySetter(id self, SEL _cmd, id value);
+
++ (BOOL)resolveInstanceMethod:(SEL)selector{
+	NSString *selectorString = NSStringFromSelector(selector);
+	if ( /* selector is from a @dynamic property */ ){
+		if ([selectorString hasPrefix:@"set"]){
+			class_method(self,
+							selector,
+							(IMP)autoDictionarySetter,
+							"v@:@");
+		} else {
+			class_addMethod(self,
+							   selector,
+							   (IMP)autoDictionaryGetter,
+							   "@@:"
+								);
+		}
+		return YES;
+	}
+	return [super resolveInstanceMethod:selector];
+}
+
+```
+
+
+## 备援接收者 -(id)forwardingTargetForSelector:(SEL)aSelector
 没有在resolveInstanceMethod实现相关的动态添加，不管返回值是否为YES，消息都会来到快速转发forwardingTargetForSelector。
 这个消息拦截的作用在于，给个机会把消息转发给另外一个对象
 看例子，新增一个Flower类：
@@ -247,7 +276,9 @@ Fish *fish = [[Fish alloc] init];
 fishMethodNotExit in Flower
 ```
 
-### methodSignatureForSelector:   forwardInvocation:
+注意： 我们无法操作经由这一步所转发的消息。若是想在发送给备援接收者之前先修改消息内容，那就得通过完整的消息转发机制来做了。
+
+##  完整的消息转发 methodSignatureForSelector:   forwardInvocation:
 如果resolveInstanceMethod 和 forwardingTargetForSelector没有对消息进行处理，则来到标准转发。methodSignatureForSelector:的作用在于为另一个类实现的消息创建一个有效的方法签名，必须实现，并且返回不为空的methodSignature，否则会crash。forwardInvocation:将选择器转发给一个真正实现了该消息的对象。每一个对象都从NSObject类继承了forwardInvocation:方法，但在NSObject中，该方法只是简单的调用doesNotRecognizeSelector:，通过重写该方法你就可以利用forwardInvocation:将消息转发给其它对象。
 
 ```
@@ -317,7 +348,7 @@ fishMethodNotExit in Flower
 ```
 
 
-### NSInvocation介绍
+## NSInvocation介绍
 在iOS中用Objective-C框架可以直接调用某个对象的消息方式有2种，（另外当然可以直接调用objc_msgSend）
 一种是performSelector:withObject: ，再一种就是NSInvocation 。
 第一种方式比较简单，能完成简单的调用。但是对于`>2个的参数或者有返回值`的处理，那就需要做些额外工作才能搞定。那么在这种情况下，我们就可以使用NSInvocation来进行这些相对复杂的操作。
