@@ -1,6 +1,6 @@
 ---
 title: Cycript 注入测试函数
-date: 2016-04-13 17:29:51
+date: 2015-04-13 17:29:51
 categories: [iOS,逆向]
 tags: [iOS,逆向]
 ---

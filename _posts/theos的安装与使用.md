@@ -1,5 +1,5 @@
 title: theos的安装以及使用
-date: 2016-04-5 17:29:51
+date: 2015-04-5 17:29:51
 categories: [iOS,逆向]
 tags: [iOS,逆向]
 ---

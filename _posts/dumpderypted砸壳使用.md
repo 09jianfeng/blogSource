@@ -1,5 +1,5 @@
 title: dumpdecrypted砸壳教程
-date: 2016-04-5 17:29:51
+date: 2015-04-5 17:29:51
 categories: [iOS,逆向]
 tags: [iOS,逆向]
 ---

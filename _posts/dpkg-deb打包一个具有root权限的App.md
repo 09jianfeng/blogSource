@@ -1,6 +1,6 @@
 ---
 title: dpkg-deb打包一个具有root权限的App
-date: 2016-05-11 09:59:31
+date: 2016-01-11 09:59:31
 categories: [iOS,逆向]
 tags: [iOS,逆向]
 ---
