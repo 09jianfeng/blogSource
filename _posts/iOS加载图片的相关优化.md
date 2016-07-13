@@ -324,3 +324,9 @@ static inline UIImage *HGCWebImage_cropImage(UIImage *srcImage, CGSize size, CGF
 
 @end
 ```
+
+
+
+
+
+
