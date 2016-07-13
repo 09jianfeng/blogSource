@@ -171,33 +171,33 @@ document.write("可用高度：" + screen.availHeight);
 
 先来看看下面代码:
 
-
+![js911](../img/js911.jpg)
 
 将HTML代码分解为DOM节点层次图:
 
-
+![912](../img/js912.jpg)
 
 HTML文档可以说由节点构成的集合，DOM节点有:
 
-1. 元素节点：上图中<html>、<body>、<p>等都是元素节点，即标签。
+1. 元素节点：上图中`<html>、<body>、<p>`等都是元素节点，即标签。
 
-2. 文本节点:向用户展示的内容，如<li>...</li>中的JavaScript、DOM、CSS等文本。
+2. 文本节点:向用户展示的内容，如`<li>...</li>`中的JavaScript、DOM、CSS等文本。
 
-3. 属性节点:元素属性，如<a>标签的链接属性href="http://www.imooc.com"。
+3. 属性节点:元素属性，如`<a>`标签的链接属性`href="http://www.imooc.com"`。
 
 节点属性:
 
-
+![913](../img/js913.jpg)
 
 遍历节点树:
 
-
+![914](../img/js914.jpg)
 
 以上图ul为例，它的父级节点body,它的子节点3个li,它的兄弟结点h2、P。
 
 DOM操作:
 
-
+![915](../img/js915.jpg)
 
 注意:前两个是document方法。
 

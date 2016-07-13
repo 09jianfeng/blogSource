@@ -11,7 +11,7 @@ tags: [iOS,逆向]
 (http://iosre.com/t/dispatch-async-queue-block-block/1234)
 
 这几天一直在逆向某个APP，发现该APP很多监控数据都是通过某单例调用dispatch_async(queue, block)在block中同步到服务器上去的。以往某个带有block参数的函数在IDA或者hooper中都会相应地给出__function_invokeblock 这样的汇编代码块。但是在很多次跟dispatch_async这样的方法时，没有（及时）发现相对应的block代码块，搞的自己很郁闷，不知道应该怎么来下断点继续跟踪，于是决定今天研究一下这块的block对应的代码块怎么在内存中获取。
-首先看了一下block的声明方式，参考文章[Block的实现]((http://linlexus.com/implementation_of_block/))。文章中说道Block可以理解为一个结构体，结构体的简单表示为：
+首先看了一下block的声明方式，参考文章[Block的实现]((http://linlexus.com/implementation_of_block/))。文章中说道Block可以理解为一个结构体(其实就是一个对象，也有isa指针)，结构体的简单表示为：
 
 ```
 struct __main_block_impl_0 {  
