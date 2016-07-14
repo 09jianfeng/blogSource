@@ -157,8 +157,23 @@ mach\_msg\_trap、mach\_msg 是mac 内核的东西.__CFRunLoopServiceMachPort �
 确切说是主线程上的RunLoop的执行顺序。
 
 
+## 实践
+`[runloop addPort:[NSMachPort port] forMode:NSDefaultRunLoopMode]` 用于别让线程被销毁，一直等待这这个port。
+
+![runloop10](../img/runloop10.png)
+
+加载图片的时候避免在滑动的模式下加载，以免卡住滑动。闲时再加载
+
+![runloop11](../img/runloop11.png)
+
+Async Test Case
+
+![runloop12](../img/runloop12.png)
+
 
 ## 参考
+[iOS线下分享 孙源]()
+
 深入理解RunLoop <http://blog.ibireme.com/2015/05/18/runloop/>
 
 
