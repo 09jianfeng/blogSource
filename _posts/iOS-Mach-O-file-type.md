@@ -24,23 +24,42 @@ int main(int argc, char *argv[])
 % ./a.out
 ```
 
-[about the clang complier](https://www.objc.io/issues/6-build-tools/compiler/)
+or
+
+```
+% clang -ccc-print-phases hello.c
+```
 
 Briefly put, the compiler will process the helloworld.c input file and produce the executable a.out. This processing consist of multiple steps/stages. What we just did is run all of them in succession:
 
 ## Compiler Steps/Stages
+[more detail about the clang complier](https://www.objc.io/issues/6-build-tools/compiler/)
+
 ### Preprocessing
-* Tokenization
 * Macro expansion
 * #include expansion
+
+```
+clang -E hello.c | less
+```
+
+* Tokenization
+
+```
+clang -Xclang -dump-tokens hello.c
+```
 
 ### Parsing and Semanic Analysis
 * Translates preprocessor tokens into a parse tree
 * Applies semantic analysis to the parse tree 
-* Output an Abstract Syntax Tree (AST)
+* Output an Abstract Syntax Tree (AST) [more AST](http://clang.llvm.org/docs/IntroductionToTheClangAST.html)
+
+```
+clang -Xclang -ast-dump -fsyntax-only hello.m
+```
 
 ### Code Generation and Optimization
-* Translates an AST into low-level intermediate code (LLVM IR)
+* Translates an AST into low-level intermediate code (LLVM IR) [more LLVM](http://www.aosabook.org/en/llvm.html)
 * Responible for optimizing the generated code
 * target-specific code generation
 * Outputs assembly
