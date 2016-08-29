@@ -6,7 +6,7 @@ tags: [前端,javaScript]
 
 # 浏览器对象
 ## window 对象
-![js811](../img/js811.jpg)
+![js811](/img/js811.jpg)
 
 例子： 实现打开一个网页，宽为600，高为400。
 
@@ -171,11 +171,11 @@ document.write("可用高度：" + screen.availHeight);
 
 先来看看下面代码:
 
-![js911](../img/js911.jpg)
+![js911](/img/js911.jpg)
 
 将HTML代码分解为DOM节点层次图:
 
-![912](../img/js912.jpg)
+![912](/img/js912.jpg)
 
 HTML文档可以说由节点构成的集合，DOM节点有:
 
@@ -187,17 +187,17 @@ HTML文档可以说由节点构成的集合，DOM节点有:
 
 节点属性:
 
-![913](../img/js913.jpg)
+![913](/img/js913.jpg)
 
 遍历节点树:
 
-![914](../img/js914.jpg)
+![914](/img/js914.jpg)
 
 以上图ul为例，它的父级节点body,它的子节点3个li,它的兄弟结点h2、P。
 
 DOM操作:
 
-![915](../img/js915.jpg)
+![915](/img/js915.jpg)
 
 注意:前两个是document方法。
 

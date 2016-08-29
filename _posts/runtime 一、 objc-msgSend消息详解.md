@@ -156,7 +156,7 @@ static Method look_up_method(Class cls, SEL sel,
 # 消息转发机制
 对象在函数列表中找不到SEL或者找不到SEL对应的IMP实现的时候就会进入消息转发流程。流程如下：
 
-![objc](../img/objc_msg1.jpeg)
+![objc](/img/objc_msg1.jpeg)
 
 ## +(BOOL)resolveInstanceMethod:(SEL)sel  方法拦截消息
 这个消息拦截的作用在于给个机会给本对象动态添加需要的selector。

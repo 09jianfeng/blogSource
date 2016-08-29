@@ -49,11 +49,11 @@ var i={
 
 运行结果如下
 
-![js121](../img/js121.png)
+![js121](/img/js121.png)
 
-![js122](../img/js122.png)
+![js122](/img/js122.png)
 
-![js123](../img/js123.png)
+![js123](/img/js123.png)
 
 ## 数组
 
@@ -514,11 +514,11 @@ love
 
 Math对象属性：
 
-![7121](../img/js7121.jpg)
+![7121](/img/js7121.jpg)
 
 Math 对象方法：
 
-![7122](../img/js7122.jpg)
+![7122](/img/js7122.jpg)
 
 
 * Array 数组对象
@@ -540,7 +540,7 @@ var  数组名 = [<元素1>, <元素2>, <元素3>...];
 var myArray = [2, 8, 6]; 
 ```
 
-![7171](../img/js7171.jpg)
+![7171](/img/js7171.jpg)
 
 数组常用方法
 

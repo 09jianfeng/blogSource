@@ -404,7 +404,7 @@ int main(int argc, char **argv)
 
 上面的代码拉到IDA，展示出来的汇编代码是下面这样的
 
-![arm assemble](../img/arm.png)
+![arm assemble](/img/arm.png)
 
 BLX\_printf”执行printf函数，它的6个参数分别存放在R0、R1、R2、R3、[SP,#0x20+var\_20]和[SP,#0x20+var\_1C]中，返回值存放在R0里，其中var\_20=-0x20，var\_1C=-0x1C，因此栈上的2个参数分别位于[SP]和[SP,#0x4]。
 

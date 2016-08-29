@@ -64,7 +64,7 @@ build->把.app包拖进iTunes -> iTunes的应用目录下找到对应的.ipa包
 ## 创建动态库
 用iOSOpenDev创建一个动态库。 iOSOpenDev怎么安装，请自行 Google，略微有点麻烦。 CaptainHook.h 在GitHub上有。搜一下就出来了。里面定义了很多宏。封装了Objective-C runtime的接口。可以比较方便的进行hook。
 
-![yololib1](../img/yololib1.png)
+![yololib1](/img/yololib1.png)
 
 ```
 
@@ -113,11 +113,11 @@ CHClassHook()这个宏的格式是：参数的个数,类的名称，selector的�
 
 **注入前**
 
-![yololib2](../img/yololib2.png)
+![yololib2](/img/yololib2.png)
 
 **注入后**
 
-![yololib3](../img/yololib3.png)
+![yololib3](/img/yololib3.png)
 
 ## 签名、打包
 准备与证书（已经装在电脑的证书）跟对应证书的 .mobileprovision文件。把.dylib、.app、EntitleMents.plist、.mobileprovision文件放在同一个目录下

@@ -82,7 +82,7 @@ __CFRUNLOOP_IS_SERVICING_THE_MAIN_DISPATCH_QUEUE__
 
 直接讲 Core Foundation层。
 
-![runloop1](../img/runloop1.png)
+![runloop1](/img/runloop1.png)
 
 CFRunLoopMode是个非常重要的概念， 起决定性的作用就是下面的三个。CFRunloopSource、CFRunLoopTimer、CFRunLoopObserver。   runloop可以嵌套，要么就同时只有一个mode在跑。
 
@@ -129,7 +129,7 @@ CFRunLoopRemoveTimer(CFRunLoopRef rl, CFRunLoopTimerRef timer, CFStringRef mode)
 
 它和 NSTimer 是toll-free bridged 的，可以混用。其包含一个时间长度和一个回调（函数指针）。当其加入到 RunLoop 时，RunLoop会注册对应的时间点，当时间点到时，RunLoop会被唤醒以执行那个回调。
 
-![runloop2](../img/runloop2.png)
+![runloop2](/img/runloop2.png)
 
 ### CFRunLoopSource
 Source是RunLoop的数据源抽象类， RunLoop定义了两个Version的Source:
@@ -148,20 +148,20 @@ Source1 包含了一个 mach_port 和一个回调（函数指针），被用于�
 
 ```
 
-![runloop3](../img/runloop3.png)
+![runloop3](/img/runloop3.png)
 
 
 ### CFRunLoopObserver
 
 是观察者，每个 Observer 都包含了一个回调（函数指针），当 RunLoop 的状态发生变化时，观察者就能通过回调接受到这个变化。可以观测的时间点有以下几个：
 
-![runloop4](../img/runloop4.png)
+![runloop4](/img/runloop4.png)
 
 CAAnimation应该是在beforWaiting或者afterWaiting后才调用，而不是调用了后就立即调用。会先收集一些animation的动作后，再一起执行。
 
 ## RunLoop的挂起与唤醒
 
-![runloop8](../img/runloop8.png)
+![runloop8](/img/runloop8.png)
 
 mach\_msg\_trap、mach\_msg 是mac 内核的东西.__CFRunLoopServiceMachPort 发送一个消息,代表等待别人唤起的状态，这个runloop就被挂起。
 
@@ -171,7 +171,7 @@ mach\_msg\_trap、mach\_msg 是mac 内核的东西.__CFRunLoopServiceMachPort �
 
 ## RunLoop迭代执行顺序
 
-![runloop9](../img/runloop9.png)
+![runloop9](/img/runloop9.png)
 
 确切说是主线程上的RunLoop的执行顺序。
 
@@ -194,7 +194,7 @@ RunLoop在同一段时间只能且必须在一种特定Mode下Run,更换Mode时,
 ## UITrackingRunLoopMode 与 Timer
 timer跑在 NSDefaultRunLoopMode 的话，滑动ScrollView，会被暂停。
 
-![runloop5](../img/runloop5.png)
+![runloop5](/img/runloop5.png)
 
 注意：子线程默认是没有创建runloop的，除非调用了Runloop相关的接口，才会生成。  
 
@@ -202,21 +202,21 @@ timer跑在 NSDefaultRunLoopMode 的话，滑动ScrollView，会被暂停。
 
 ## RunLoopMode的切换
 
-![runloop6](../img/runloop6.png)
+![runloop6](/img/runloop6.png)
 
 可以看出在滑动的时候是运行在UITrackingRunLoopMode下的，这个时候是在跑 timer。
 
 
 ## RunLoop 与 dispatch\_get\_main\_queue()
 
-![runloop7](../img/runloop7.png)
+![runloop7](/img/runloop7.png)
 
 queue如果是main queue的话，GCD就和runloop有关系。主要是因为大家获取的主线程是一样的。这里的关系，也就仅仅是用于runloop调起main queue的block。
 
 
 ## RunLoop的挂起与唤醒
 
-![runloop8](../img/runloop8.png)
+![runloop8](/img/runloop8.png)
 
 mach\_msg\_trap、mach\_msg 是mac 内核的东西.__CFRunLoopServiceMachPort 发送一个消息,代表等待别人唤起的状态，这个runloop就被挂起。
 
@@ -226,7 +226,7 @@ mach\_msg\_trap、mach\_msg 是mac 内核的东西.__CFRunLoopServiceMachPort �
 
 ## RunLoop迭代执行顺序
 
-![runloop9](../img/runloop9.png)
+![runloop9](/img/runloop9.png)
 
 确切说是主线程上的RunLoop的执行顺序。
 
@@ -234,11 +234,11 @@ mach\_msg\_trap、mach\_msg 是mac 内核的东西.__CFRunLoopServiceMachPort �
 # 实践
 `[runloop addPort:[NSMachPort port] forMode:NSDefaultRunLoopMode]` 用于别让线程被销毁，一直等待这这个port。
 
-![runloop10](../img/runloop10.png)
+![runloop10](/img/runloop10.png)
 
 加载图片的时候避免在滑动的模式下加载，以免卡住滑动。闲时再加载
 
-![runloop11](../img/runloop11.png)
+![runloop11](/img/runloop11.png)
 
 
 ## 网络请求
@@ -246,7 +246,7 @@ mach\_msg\_trap、mach\_msg 是mac 内核的东西.__CFRunLoopServiceMachPort �
 
 当开始网络传输时，我们可以看到 NSURLConnection 创建了两个新线程：com.apple.NSURLConnectionLoader 和 com.apple.CFSocket.private。其中 CFSocket 线程是处理底层 socket 连接的。NSURLConnectionLoader 这个线程内部会使用 RunLoop 来接收底层 socket 的事件，并通过之前添加的 Source0 通知到上层的 Delegate。
 
-![runloop14](../img/runloop13.png)
+![runloop14](/img/runloop13.png)
 
 NSURLConnectionLoader 中的 RunLoop 通过一些基于 mach port 的 Source 接收来自底层 CFSocket 的通知。当收到通知后，其会在合适的时机向 CFMultiplexerSource 等 Source0 发送通知，同时唤醒 Delegate 线程的 RunLoop 来让其处理这些通知。CFMultiplexerSource 会在 Delegate 线程的 RunLoop 对 Delegate 执行实际的回调。
 
@@ -255,7 +255,7 @@ NSURLConnectionLoader 中的 RunLoop 通过一些基于 mach port 的 Source 接
 
 AFURLConnectionOperation 这个类是基于 NSURLConnection 构建的，其希望能在后台线程接收 Delegate 回调。为此 AFNetworking 单独创建了一个线程，并在这个线程中启动了一个 RunLoop：
 
-![runloop10](../img/runloop10.png)
+![runloop10](/img/runloop10.png)
 
 RunLoop 启动前内部必须要有至少一个 Timer/Observer/Source，所以 AFNetworking 在 [runLoop run] 之前先创建了一个新的 NSMachPort 添加进去了。通常情况下，调用者需要持有这个 NSMachPort (mach_port) 并在外部线程通过这个 port 发送消息到 loop 内；但此处添加 port 只是为了让 RunLoop 不至于退出，并没有用于实际的发送消息。
 
@@ -279,7 +279,7 @@ facebook的开源库，可以在后台进程异步创建 UIView、CALayer。在�
 
 <https://github.com/facebook/AsyncDisplayKit>
 
-![runloop12](../img/runloop12.png)
+![runloop12](/img/runloop12.png)
 
 
 # 参考
