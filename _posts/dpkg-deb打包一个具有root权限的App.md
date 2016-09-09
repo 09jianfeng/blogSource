@@ -1,9 +1,13 @@
 ---
-title: dpkg-deb打包一个具有root权限的App
+title: iOSOpenDev与dpkg-deb打包一个具有root权限的App
 date: 2016-01-11 09:59:31
 categories: [iOS,逆向]
 tags: [iOS,逆向]
 ---
+
+参考：狗神的帖子 <http://bbs.iosre.com/t/run-an-app-as-root-on-ios/239>
+
+# dpkg
 
 ## 安装Macports
 
@@ -111,3 +115,30 @@ dpkg: error processing
 dpkg-deb -Z gzip -b ./ mydeb.deb
 ```
 
+# 提权
+## 步骤
+1、postinst文件配置：
+
+```
+chmod +s /Applications/aatext.app/aatext
+chown  root:wheel /Applications/aatext.app/aatext
+```
+
+2、准备一个bash脚本。添加到工程
+
+```
+C=/${0}
+C=${C%/*}
+exec "${C:-.}"/aatext
+```
+
+
+3、修复info.plist文件
+
+```
+Executable file 值设置为 bash
+```
+
+然后再按照上面说的dpkg-deb打包成deb，安装。就是一个具有root权限的app了
+
+## 原理
