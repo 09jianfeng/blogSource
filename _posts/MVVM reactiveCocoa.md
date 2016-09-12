@@ -55,9 +55,9 @@ ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.
 
 信号源代表的是随着时间而改变的值流，Streams of values over time。
 
-**`RACObserve`**创建信号
+* RACObserve 创建信号
 
-用宏 RACObserve监测 NSString类型的 searchText。一旦 searchText的值发生变化，就发送信号。`distinctUntilChanged ` 确保信号的状态有改变，才继续下发。
+用宏 RACObserve监测 NSString类型的 searchText。一旦 searchText的值发生变化，就发送信号。`distinctUntilChanged ` 确保信号的状态有改变，才继续下发。这种类似与KVO的机制
 
 
 ```
@@ -83,15 +83,12 @@ ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.
                                                  }];
 ```
 
-**`[RACSignal createSignal:subscribeOn:]`** 
+* [RACSignal createSignal:subscribeOn:] 
+
+这个方式创建信号，有个返回值为`RACDisposable `,参数为`id subscriber`的block。在block中添加需要异步操作的代码。 操作完成后。调用 `[subscriber sendError:` / [subscriber sendNext:nil]; / [subscriber sendCompleted]; 。分别对应着 失败 / 传递信号 / 完成操作。这个block的返回值是一个`RACDisposable`对象，它允许你在一个订阅被取消时执行一些清理工作。当前的信号不需要执行清理操作，所以返回nil就可以了。
 
 ```
-/*
- 1、定义了一个error，当用户拒绝访问时发送。
- 2、和第一部分一样，类方法createSignal返回一个RACSignal实例。
- 3、通过account store请求访问Twitter。此时用户会看到一个弹框来询问是否允许访问Twitter账户。
- 4、在用户允许或拒绝访问之后，会发送signal事件。如果用户允许访问，会发送一个next事件，紧跟着再发送一个completed事件。如果用户拒绝访问，会发送一个error事件。
- 
+/* 
  这个block的返回值是一个RACDisposable对象，它允许你在一个订阅被取消时执行一些清理工作。当前的信号不需要执行清理操作，所以返回nil就可以了
  block的入参是一个subscriber实例，它遵循RACSubscriber协议，协议里有一些方法来产生事件，你可以发送任意数量的next事件，或者用error\complete事件来终止。本例中，信号发送了一个next事件来表示同意访问，随后是一个complete事件
  */
@@ -123,15 +120,63 @@ ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.
 }
 ```
 
+* RACCommand
+
+
 
 ### 信号传递流程中的一些处理
-`flattenMap`: 把block的信号转换替换为了源信号，同时还从内部信号发送事件到外部信号，使得信号继续传递下去。
+* map
 
-`then`：等待 completed事件发射后，才订阅 block里面返回的signal。也就是阻断了 next的事件传递。只有complete，才能继续往下传信号。而且是信号还被转换了。 如果信号发出的是error，不会被then阻断，会直接调用订阅者的 error block。
+转换信号在传递过程中所带的参数。 比如下面这个例子，就是把 RACTuple的参数转换为 tuple.second.
 
-`throttle`：只有当前一个next事件在指定的时间段内没有被接收到后，throttle操作才会发送next事件。 避免在一段时间内反复发送很多信号
+```
+        [[[successSignal
+           //代理方法每次调用时，发出的next事件会附带包含方法参数的RACTuple
+           map:^id(RACTuple *tuple) {
+               return tuple.second;
+           }]
+          map:block]
+         subscribeNext:^(id x) {
+             [subscriber sendNext:x];
+             [subscriber sendCompleted];
+         }];
+```
 
-`deliverOn`:  切换到主线程，用于更新UI。注意：如果你看一下RACScheduler类，就能发现还有很多选项，比如不同的线程优先级，或者在管道中添加延迟。
+* flattenMap
+
+ 把block的信号转换替换为了源信号，同时还从内部信号发送事件到外部信号，使得信号继续传递下去。例如下面的例子， logInUser是个信号，发出信号后，往下传递。 flattenMap接收到信号后，调用`[client loadCachedMessagesForUser:user]`返回另外一个信号，替换原来的信号继续传递下去。
+ 
+ ```
+ [[[[client 
+    logInUser] 
+    flattenMap:^(User *user) {
+        // Return a signal that loads cached messages for the user.
+        return [client loadCachedMessagesForUser:user];
+    }]
+    flattenMap:^(NSArray *messages) {
+        // Return a signal that fetches any remaining messages.
+        return [client fetchMessagesAfterMessage:messages.lastObject];
+    }]
+    subscribeNext:^(NSArray *newMessages) {
+        NSLog(@"New messages: %@", newMessages);
+    } completed:^{
+        NSLog(@"Fetched all messages.");
+    }];
+ ```
+
+* `then`
+
+等待 completed事件发射后，才订阅 block里面返回的signal。也就是阻断了 next的事件传递。只有complete，才能继续往下传信号。而且是信号还被转换了。 如果信号发出的是error，不会被then阻断，会直接调用订阅者的 error block。
+
+* throttle 
+
+只有当前一个next事件在指定的时间段内没有被接收到后，throttle操作才会发送next事件。 避免在一段时间内反复发送很多信号
+
+* deliverOn
+
+ 切换到主线程，用于更新UI。注意：如果你看一下RACScheduler类，就能发现还有很多选项，比如不同的线程优先级，或者在管道中添加延迟。
+
+**综合例子：**
 
 ```
 - (void)twitterPipe{
