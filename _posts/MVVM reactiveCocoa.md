@@ -11,22 +11,19 @@ tags: [iOS,Objective-C,设计模式]
 
 [ReactiveCocoaTutorial-part2](http://www.raywenderlich.com/62796/reactivecocoa-tutorial-pt2)
 
-[南峰子的技术博客 MVVM一](http://southpeak.github.io/blog/2014/08/08/mvvmzhi-nan-yi-:flickrsou-suo-shi-li/)
+<http://www.sprynthesis.com/2014/12/06/reactivecocoa-mvvm-introduction/>
 
-[南峰子技术博客 MVVM 二](http://southpeak.github.io/blog/2014/08/12/mvvmzhi-nan-er-:flickrsou-suo-shen-ru/)
-
-[雷纯锋博客 MVVM With ReactiveCocoa](http://blog.leichunfeng.com/blog/2016/02/27/mvvm-with-reactivecocoa/)
-
-[ReactiveCocoa v2.5 源码解析之架构总览](http://blog.leichunfeng.com/blog/2015/12/25/reactivecocoa-v2-dot-5-yuan-ma-jie-xi-zhi-jia-gou-zong-lan/)
-
-<http://www.jianshu.com/p/d262f2c55fbe#rd>
+<https://github.com/ReactiveCocoa/ReactiveCocoa/tree/master/Documentation>
 
 # MVVM
 
+**注意**
 
 ```
-View引用了ViewModel，但反过来不行。
-ViewModel引用了Model，但反过来不行。
+View引用了ViewModel，但反过来不行。也就是说ViewController知道ViewModel，但是ViewModel不知道ViewController。如果要更新View上的显示状态，通过数据绑定的方式监听变更。
+
+ViewModel引用了Model，但反过来不行。ViewModel暴露用户交互的接口给View，接受View发出的命令，执行网络请求，数据存储的操作。
+
 如果我们破坏了这些规则，便无法正确地使用MVVM。 
 ```
 
@@ -43,25 +40,45 @@ MVVM是MVC模式的一个变种，它正逐渐流行起来， MVVM模式让View�
 * binder ：在 MVVM 中，声明式的数据和命令绑定是一个隐含的约定，它可以让开发者非常方便地实现 view 和 viewModel 的同步，避免编写大量繁杂的样板化代码。
 
 
-## ReactiveCocoa 
+# ReactiveCocoa 
 
 MVVM模式依赖于数据绑定，它是一个框架级别的特性，用于自动连接对象属性和UI控件。iOS没有数据绑定框架，幸运的是我们可以通过ReactiveCocoa来实现这一功能。我们从iOS开发的角度来看看MVVM模式，ViewController及其相关的UI(nib, stroyboard或纯代码的View)组成了View。
 
 ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.rac_textSignal;`）来表示UI状态，它同样暴露命令（`RACCommand`）来表示UI操作(通常是方法)。ViewModel负责管理基于用户交互的UI状态的改变。然而它不负责实际执行这些交互产生的的业务逻辑，那是Model的工作。
 
-### 创建信号
+## 信号创建
 
-**信号**
+* 1、`RACObserve`创建类似 kvo 监控变量的信号
 
-信号源代表的是随着时间而改变的值流，Streams of values over time。
+searchText 是 self的变量。 searchText变化，会触发 订阅者subscribeNext的block代码`NSLog(@"%@", text);`
 
-**`RACObserve`**创建信号
+```
+[RACObserve(self, searchText) subscribeNext:^(NSString *text) {
+    NSLog(@"%@", text);
+}];
+```
 
-用宏 RACObserve监测 NSString类型的 searchText。一旦 searchText的值发生变化，就发送信号。`distinctUntilChanged ` 确保信号的状态有改变，才继续下发。
+* 2、过滤传入值 `filter`。 filter会过滤信号，block返回YES的才会继续下发
+
+```
+[RACObserve(self, searchText) 
+	filter:^(NSString *text) {
+	        return @(text.length > 3);
+	    }]
+	
+	subscribeNext:^(NSString *text) {
+	    NSLog(@"%@", text);
+	}
+];
+
+```
+
+* 3、改变信号带的参数。 `map`, 这里的 map 把 入参 `NSString *text` 转变为 `id x` 。用宏 RACObserve监测 NSString类型的 searchText。一旦 searchText的值发生变化，就发送信号。`distinctUntilChanged ` 确保信号的状态有改变，才继续下发。
 
 
 ```
 //使用RACObserve宏来从ViewModel的searchText属性创建一个信号。一旦searchText有变化，就发出信号
+// searchText 是 self的变量。
     RACSignal *validSearchSignal =
     [[RACObserve(self, searchText)
       //map操作将文本转化为一个true或false值的流。
@@ -76,14 +93,48 @@ ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.
         NSLog(@"search text is valid %@", x);
     }];
     
-    //RACCommand是ReactiveCocoa中用于表示UI操作的一个类。它包含一个代表了UI操作的结果的信号以及标识操作当前是否被执行的一个状态。
+```
+
+* 4、`RACCommand` 命令。 RACComand 创建一个响应 UI 交互的 信号。
+
+```
+当button按下的时候，打印 button was pressed 。 rac_command 是 button的扩展。 每次按下button，都会发送响应信号。
+
+self.button.rac_command = [[RACCommand alloc] initWithSignalBlock:^(id _) {
+    NSLog(@"button was pressed!");
+    return [RACSignal empty];
+}];
+```
+
+下面例子的 RACCommand 等待着 validSearchSignal 信号发出。相当于订阅了 validSearchSignal ， validSearchSignal 的信号带参为YES，则下发 [self executeSearchSignal]; 这个信号。执行搜索
+
+```
     self.executeSearch = [[RACCommand alloc] initWithEnabled:validSearchSignal
                                                  signalBlock:^RACSignal *(id input) {
                                                      return [self executeSearchSignal];
                                                  }];
 ```
 
-**`[RACSignal createSignal:subscribeOn:]`** 
+用户点击login按钮，触发 [clinet logIn]。self.loginCommand.executionSignals 相当于 self.loginCommand的信号，可以继续增加订阅者，传递信号。 所以是 用户点击 `login button` -> `return [client logIn];` -> 
+`subscribeNext:^(RACSignal *loginSignal) { ... }];` -> 执行 `[loginSignal subscribeCompleted:^{ NSLog(@"Logged in successfully!");}];` -> 等待网络请求完毕，下发loginSignal(不带参数) -> `NSLog(@"Logged in successfully!");`
+
+```
+self.loginCommand = [[RACCommand alloc] initWithSignalBlock:^(id sender) {
+    return [client logIn];
+}];
+
+[self.loginCommand.executionSignals subscribeNext:^(RACSignal *loginSignal) {
+    [loginSignal subscribeCompleted:^{
+        NSLog(@"Logged in successfully!");
+    }];
+}];
+
+//当loginButton按下，会发送 rac_command. 触发 rac_command的订阅者
+self.loginButton.rac_command = self.loginCommand;
+```
+
+
+* 5、`[RACSignal createSignal:subscribeOn:]` 创建网络请求返回结果后发出信号
 
 ```
 /*
@@ -103,28 +154,30 @@ ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.
     
     // 2 - create the signal   @weakify宏让你创建一个弱引用的影子对象
     @weakify(self)
-    return [RACSignal createSignal:^RACDisposable *(id subscriber) {
-        // 3 - request access to twitter  @strongify让你创建一个对之前传入@weakify对象的强引用。
-        @strongify(self)
-        NSLog(@"request signal");
-        [self.accountStore requestAccessToAccountsWithType:self.twitterAccountType
-                                                   options:nil
-                                                completion:^(BOOL granted, NSError *error) {
-                                                    // 4 - handle the response
-                                                    if (!granted) {
-                                                        [subscriber sendError:accessError];
-                                                    } else {
-                                                        [subscriber sendNext:nil];
-                                                        [subscriber sendCompleted];
-                                                    }
-                                                }]; 
-        return nil; 
-    }]; 
+    return [RACSignal createSignal:
+   					^RACDisposable *(id subscriber) {
+				        // 3 - request access to twitter  @strongify让你创建一个对之前传入@weakify对象的强引用。
+				        @strongify(self)
+				        NSLog(@"request signal");
+				        [self.accountStore requestAccessToAccountsWithType:self.twitterAccountType
+				                                                   options:nil
+				                                                completion:^(BOOL granted, NSError *error) {
+				                                                    // 4 - handle the response
+				                                                    if (!granted) {
+				                                                        [subscriber sendError:accessError];
+				                                                    } else {
+				                                                        [subscriber sendNext:nil];
+				                                                        [subscriber sendCompleted];
+				                                                    }
+				                                                }]; 
+			        	return nil; 
+			        }
+           ]; 
 }
 ```
 
 
-### 信号传递流程中的一些处理
+## 信号传递流程中的一些处理,信号过滤、转换、线程切换
 `flattenMap`: 把block的信号转换替换为了源信号，同时还从内部信号发送事件到外部信号，使得信号继续传递下去。
 
 `then`：等待 completed事件发射后，才订阅 block里面返回的signal。也就是阻断了 next的事件传递。只有complete，才能继续往下传信号。而且是信号还被转换了。 如果信号发出的是error，不会被then阻断，会直接调用订阅者的 error block。
@@ -180,19 +233,21 @@ ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.
 }
 ```
 
-###  切换线程
+##  切换线程
 
 通过调用 deliverOn:[RACScheduler mainThreadScheduler]] 使得订阅者在主线程运行
 
 ```
     [[[[self signalForLoadingImage:tweet.profileImageUrl]
       
-      takeUntil:cell.rac_prepareForReuseSignal]
+     takeUntil:cell.rac_prepareForReuseSignal]
      
      deliverOn:[RACScheduler mainThreadScheduler]]
+     
      subscribeNext:^(UIImage *image) {
         cell.twitterAvatarView.image = image;
-    }];
+      }
+    ];
 ```
 
 `[RACSignal createSignal:subscribeOn:scheduler]`在创建信号的时候，调用多一步 `scheduler`, 来指定信号源在哪个线程执行
@@ -217,7 +272,7 @@ ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.
 }
 ```
 
-### 避免block循环引用
+## 避免block循环引用
 
 @weakify宏让你创建一个弱引用的影子对象,@strongify(self)对这个影子对象的引用。
 
@@ -231,7 +286,7 @@ ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.
         }];
 ```
 
-### 从代理创建一个信号以及其他异步行为
+## 把 @protocol 定义的传统委托方法转换成RAC的写法，以及一些其他异步操作的转换
 
 有代理 `@protocol OFFlickrAPIRequestDelegate <NSObject>`方法 `- (void)flickrAPIRequest:(OFFlickrAPIRequest *)inRequest didCompleteWithResponse:(NSDictionary *)inResponseDictionary;`。可以这样来通过代理创建信号,
 
@@ -249,7 +304,9 @@ ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.
            map:^id(RACTuple *tuple) {
                return tuple.second;
            }]
+           
           map:block]
+          
          subscribeNext:^(id x) {
              [subscriber sendNext:x];
              [subscriber sendCompleted];
@@ -319,6 +376,18 @@ ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.
 
 ## 多个信号合并成一个信号
 
+* 1、 `combileLatest` 合并信号给其他信号赋值。 例如下面的例子， 给self name1 和 sel name2 变化后，就会触发 reduce的block运行，判断name1 与 name2 是否相等。赋值给 self isSomeName。
+
+```
+RAC(self, isSomeName) = [RACSignal 
+    combineLatest:@[ RACObserve(self, name1), RACObserve(self, name2) ] 
+    reduce:^(NSString *name1, NSString *name2) {
+        return @([name1 isEqualToString:name2]);
+    }];
+```
+
+* 2、`combineLatest` 下面的例子是 合并 favorites（信号带参NSString *favs） 和 comments（信号带参NSString *coms） 返回值后（都发出了信号）。触发 reduce block订阅者。用两个源订阅的数据合并成一个 RWTFlickrPhotoMetadata的数据。
+
 ```
 - (RACSignal *)flickrImageMetadata:(NSString *)photoId {
     
@@ -340,12 +409,25 @@ ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.
     
     //一旦创建了两个信号，combineLatest:reduce:方法生成一个新的信号来组合两者。
     //这个方法等待源信号的一个next事件。reduce块使用它们的内容来调用，其结果变成联合信号的next事件。
-    return [RACSignal combineLatest:@[favorites, comments] reduce:^id(NSString *favs, NSString *coms){
-        RWTFlickrPhotoMetadata *meta = [RWTFlickrPhotoMetadata new];
-        meta.comments = [coms integerValue];
-        meta.favorites = [favs integerValue];
-        return  meta;
-    }];
+    return [RACSignal combineLatest:@[favorites, comments] 
+					   	 reduce:^id(NSString *favs, NSString *coms){
+					        RWTFlickrPhotoMetadata *meta = [RWTFlickrPhotoMetadata new];
+					        meta.comments = [coms integerValue];
+					        meta.favorites = [favs integerValue];
+					        return  meta;
+					    }
+			  ];
 }
+```
+
+
+* 3、`merge` , 合并两个信号，当两个信号都完成了后触发。 也就是两个信号都 发送了 compeleted 信号后
+
+```
+[[RACSignal 
+    merge:@[ [client fetchUserRepos], [client fetchOrgRepos] ]] 
+    subscribeCompleted:^{
+        NSLog(@"They're both done!");
+    }];
 ```
 
