@@ -48,7 +48,7 @@ ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.
 
 ## 信号创建
 
-* 1、`RACObserve`创建类似 kvo 监控变量的信号
+* `RACObserve`创建类似 kvo 监控变量的信号
 
 searchText 是 self的变量。 searchText变化，会触发 订阅者subscribeNext的block代码`NSLog(@"%@", text);`
 
@@ -58,43 +58,7 @@ searchText 是 self的变量。 searchText变化，会触发 订阅者subscribeN
 }];
 ```
 
-* 2、过滤传入值 `filter`。 filter会过滤信号，block返回YES的才会继续下发
-
-```
-[RACObserve(self, searchText) 
-	filter:^(NSString *text) {
-	        return @(text.length > 3);
-	    }]
-	
-	subscribeNext:^(NSString *text) {
-	    NSLog(@"%@", text);
-	}
-];
-
-```
-
-* 3、改变信号带的参数。 `map`, 这里的 map 把 入参 `NSString *text` 转变为 `id x` 。用宏 RACObserve监测 NSString类型的 searchText。一旦 searchText的值发生变化，就发送信号。`distinctUntilChanged ` 确保信号的状态有改变，才继续下发。
-
-```
-//使用RACObserve宏来从ViewModel的searchText属性创建一个信号。一旦searchText有变化，就发出信号
-// searchText 是 self的变量。
-    RACSignal *validSearchSignal =
-    [[RACObserve(self, searchText)
-      //map操作将文本转化为一个true或false值的流。
-      map:^id(NSString *text) {
-          return @(text.length > 3);
-      }]
-     
-     //最后，distinctUntilChanges确保信号只有在状态改变时才发出
-     distinctUntilChanged];
-    
-    [validSearchSignal subscribeNext:^(id x) {
-        NSLog(@"search text is valid %@", x);
-    }];
-    
-```
-
-* 4、`RACCommand` 命令。 RACComand 创建一个响应 UI 交互的 信号。
+* `RACCommand` 命令。 RACComand 创建一个响应 UI 交互的 信号。下面的例子是：每当按钮点击，就调用 block
 
 ```
 当button按下的时候，打印 button was pressed 。 rac_command 是 button的扩展。 每次按下button，都会发送响应信号。
@@ -133,7 +97,7 @@ self.loginButton.rac_command = self.loginCommand;
 ```
 
 
-* 5、`[RACSignal createSignal:subscribeOn:]` 创建网络请求返回结果后发出信号
+* `[RACSignal createSignal:subscribeOn:]` 创建网络请求返回结果后发出信号
 
 ```
 /* 
@@ -170,26 +134,79 @@ self.loginButton.rac_command = self.loginCommand;
 }
 ```
 
-* RACCommand
-
 
 ### 信号传递流程中的一些处理
+* subscribeNext、subscribeComplete、subscribeError
+
+用于访问信号中的值
+
+```
+RACSignal *letters = [@"A B C D E F G H I" componentsSeparatedByString:@" "].rac_sequence.signal;
+
+// Outputs: A B C D E F G H I
+[letters subscribeNext:^(NSString *x) {
+    NSLog(@"%@", x);
+}];
+```
+
+* filter
+
+过滤传入值 `filter`。 filter会过滤信号，block返回YES的才会继续下发
+
+```
+[RACObserve(self, searchText) 
+	filter:^(NSString *text) {
+	        return @(text.length > 3);
+	    }]
+	
+	subscribeNext:^(NSString *text) {
+	    NSLog(@"%@", text);
+	}
+];
+
+```
+
+```
+RACSequence *numbers = [@"1 2 3 4 5 6 7 8 9" componentsSeparatedByString:@" "].rac_sequence;
+
+// Contains: 2 4 6 8
+RACSequence *filtered = [numbers filter:^ BOOL (NSString *value) {
+    return (value.intValue % 2) == 0;
+}];
+```
+
 * map
 
-转换信号在传递过程中所带的参数。 比如下面这个例子，就是把 RACTuple的参数转换为 tuple.second.
+改变信号带的参数。 `map`, 这里的 map 把 入参 `NSString *text` 转变为 `id x` 。用宏 RACObserve监测 NSString类型的 searchText。一旦 searchText的值发生变化，就发送信号。`distinctUntilChanged ` 确保信号的状态有改变，才继续下发。
 
 ```
-        [[[successSignal
-           //代理方法每次调用时，发出的next事件会附带包含方法参数的RACTuple
-           map:^id(RACTuple *tuple) {
-               return tuple.second;
-           }]
-          map:block]
-         subscribeNext:^(id x) {
-             [subscriber sendNext:x];
-             [subscriber sendCompleted];
-         }];
+//使用RACObserve宏来从ViewModel的searchText属性创建一个信号。一旦searchText有变化，就发出信号
+// searchText 是 self的变量。
+    RACSignal *validSearchSignal =
+    [[RACObserve(self, searchText)
+      //map操作将文本转化为一个true或false值的流。
+      map:^id(NSString *text) {
+          return @(text.length > 3);
+      }]
+     
+     //最后，distinctUntilChanges确保信号只有在状态改变时才发出
+     distinctUntilChanged];
+    
+    [validSearchSignal subscribeNext:^(id x) {
+        NSLog(@"search text is valid %@", x);
+    }];
+    
 ```
+
+```
+RACSequence *letters = [@"A B C D E F G H I" componentsSeparatedByString:@" "].rac_sequence;
+
+// Contains: AA BB CC DD EE FF GG HH II
+RACSequence *mapped = [letters map:^(NSString *value) {
+    return [value stringByAppendingString:value];
+}];
+```
+
 
 * flattenMap
 
@@ -215,7 +232,7 @@ self.loginButton.rac_command = self.loginCommand;
 
 * `then`
 
-等待 completed事件发射后，才订阅 block里面返回的signal。也就是阻断了 next的事件传递。只有complete，才能继续往下传信号。而且是信号还被转换了。 如果信号发出的是error，不会被then阻断，会直接调用订阅者的 error block。
+等待 completed事件发射后，才调用 block里面返回的signal。也就是阻断了 next的事件传递。只有complete，才能继续往下传信号。而且是信号还被转换了。 如果信号发出的是error，不会被then阻断，会直接调用订阅者的 error block。
 
 * throttle 
 
@@ -224,6 +241,30 @@ self.loginButton.rac_command = self.loginCommand;
 * deliverOn
 
  切换到主线程，用于更新UI。注意：如果你看一下RACScheduler类，就能发现还有很多选项，比如不同的线程优先级，或者在管道中添加延迟。
+
+* doNext、doError、doCompleted 把block注入对应的订阅者。本身并不去订阅
+
+```
+__block unsigned subscriptions = 0;
+
+RACSignal *loggingSignal = [RACSignal createSignal:^ RACDisposable * (id<RACSubscriber> subscriber) {
+    subscriptions++;
+    [subscriber sendCompleted];
+    return nil;
+}];
+
+// Does not output anything yet
+loggingSignal = [loggingSignal doCompleted:^{
+    NSLog(@"about to complete subscription %u", subscriptions);
+}];
+
+// Outputs:
+// about to complete subscription 1
+// subscription 1
+[loggingSignal subscribeCompleted:^{
+    NSLog(@"subscription %u", subscriptions);
+}];
+```
 
 **综合例子：**
 
@@ -273,6 +314,8 @@ self.loginButton.rac_command = self.loginCommand;
     }];
 }
 ```
+
+
 
 ##  切换线程
 
@@ -417,7 +460,7 @@ self.loginButton.rac_command = self.loginCommand;
 
 ## 多个信号合并成一个信号
 
-* 1、 `combileLatest` 合并信号给其他信号赋值。 例如下面的例子， 给self name1 和 sel name2 变化后，就会触发 reduce的block运行，判断name1 与 name2 是否相等。赋值给 self isSomeName。
+*  `combileLatest` 合并信号给其他信号赋值。 例如下面的例子， 给self name1 和 sel name2 变化后，就会触发 reduce的block运行，判断name1 与 name2 是否相等。赋值给 self isSomeName。
 
 ```
 RAC(self, isSomeName) = [RACSignal 
@@ -427,7 +470,7 @@ RAC(self, isSomeName) = [RACSignal
     }];
 ```
 
-* 2、`combineLatest` 下面的例子是 合并 favorites（信号带参NSString *favs） 和 comments（信号带参NSString *coms） 返回值后（都发出了信号）。触发 reduce block订阅者。用两个源订阅的数据合并成一个 RWTFlickrPhotoMetadata的数据。
+* `combineLatest` 下面的例子是 合并 favorites（信号带参NSString *favs） 和 comments（信号带参NSString *coms） 返回值后（都发出了信号）。触发 reduce block订阅者。用两个源订阅的数据合并成一个 RWTFlickrPhotoMetadata的数据。
 
 ```
 - (RACSignal *)flickrImageMetadata:(NSString *)photoId {
@@ -462,7 +505,7 @@ RAC(self, isSomeName) = [RACSignal
 ```
 
 
-* 3、`merge` , 合并两个信号，当两个信号都完成了后触发。 也就是两个信号都 发送了 compeleted 信号后
+* `merge` , 合并两个信号，当两个信号都完成了后触发。 也就是两个信号都 发送了 compeleted 信号后
 
 ```
 [[RACSignal 
@@ -471,4 +514,62 @@ RAC(self, isSomeName) = [RACSignal
         NSLog(@"They're both done!");
     }];
 ```
+
+* concat: 
+
+链接两个流的带的参数值
+
+```
+RACSequence *letters = [@"A B C D E F G H I" componentsSeparatedByString:@" "].rac_sequence;
+RACSequence *numbers = [@"1 2 3 4 5 6 7 8 9" componentsSeparatedByString:@" "].rac_sequence;
+
+// Contains: A B C D E F G H I 1 2 3 4 5 6 7 8 9
+RACSequence *concatenated = [letters concat:numbers];
+```
+
+
+* flatten
+
+合并两个流所带的值
+
+序列：
+
+```
+RACSequence *letters = [@"A B C D E F G H I" componentsSeparatedByString:@" "].rac_sequence;
+RACSequence *numbers = [@"1 2 3 4 5 6 7 8 9" componentsSeparatedByString:@" "].rac_sequence;
+RACSequence *sequenceOfSequences = @[ letters, numbers ].rac_sequence;
+
+// Contains: A B C D E F G H I 1 2 3 4 5 6 7 8 9
+RACSequence *flattened = [sequenceOfSequences flatten];
+```
+
+信号：
+
+```
+RACSubject *letters = [RACSubject subject];
+RACSubject *numbers = [RACSubject subject];
+RACSignal *signalOfSignals = [RACSignal createSignal:^ RACDisposable * (id<RACSubscriber> subscriber) {
+    [subscriber sendNext:letters];
+    [subscriber sendNext:numbers];
+    [subscriber sendCompleted];
+    return nil;
+}];
+
+RACSignal *flattened = [signalOfSignals flatten];
+
+// Outputs: A 1 B C 2
+[flattened subscribeNext:^(NSString *x) {
+    NSLog(@"%@", x);
+}];
+
+[letters sendNext:@"A"];
+[numbers sendNext:@"1"];
+[letters sendNext:@"B"];
+[letters sendNext:@"C"];
+[numbers sendNext:@"2"];
+```
+
+
+
+
 
