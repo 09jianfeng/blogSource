@@ -46,6 +46,53 @@ MVVM模式依赖于数据绑定，它是一个框架级别的特性，用于自�
 
 ViewModel暴露属性（`RAC(self.viewModel, searchText) = self.searchTextField.rac_textSignal;`）来表示UI状态，它同样暴露命令（`RACCommand`）来表示UI操作(通常是方法)。ViewModel负责管理基于用户交互的UI状态的改变。然而它不负责实际执行这些交互产生的的业务逻辑，那是Model的工作。
 
+## 类型
+
+* RACSignal
+
+信号，带着参数等信息。作为基本元素在传递链中传递。 尽管每个订阅信号的Subscription可以指定自己的执行在哪个线程，但是RAC保证信号是串行的。也就是说一定要等信号处理完了，才会往下传递
+
+* Subjects
+
+Subject也是个Signal。不过是Mutable的Signal
+
+* RACSequence
+
+RACSequence 是一种集合。Cocoa框架的大多数集合类型，RAC都有提供rac_sequence方法，以使用RACSequence。Sequence用的是懒加载，访问的时候才创建。下面例子中 sequence.head访问的时候才调用 map的block。输出A， 赋值给concatA 为 A_
+
+```
+NSArray *strings = @[ @"A", @"B", @"C" ];
+RACSequence *sequence = [strings.rac_sequence map:^(NSString *str) {
+    NSLog(@"%@", str);
+    return [str stringByAppendingString:@"_"];
+}];
+
+// Logs "A" during this call.
+NSString *concatA = sequence.head;
+
+// Logs "B" during this call.
+NSString *concatB = sequence.tail.head;
+
+// Does not log anything.
+NSString *concatB2 = sequence.tail.head;
+
+RACSequence *derivedSequence = [sequence map:^(NSString *str) {
+    return [@"_" stringByAppendingString:str];
+}];
+
+// Still does not log anything, because "B_" was already evaluated, and the log
+// statement associated with it will never be re-executed.
+NSString *concatB3 = derivedSequence.tail.head;
+
+
+输出：
+A
+B
+
+```
+
+
+
 ## 信号创建
 
 * `RACObserve`创建类似 kvo 监控变量的信号
