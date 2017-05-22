@@ -86,7 +86,7 @@ NSURLSessionConfiguration有三个工厂方法
 
 * backgroundSessionConfiguration
 
-+backgroundSessionConfiguration:(NSString *)identifier 的独特之处在于，它会创建一个后台 session。后台 session 不同于常规的，普通的 session，它甚至可以在应用程序挂起，退出或者崩溃的情况下运行上传和下载任务。初始化时指定的标识符，被用于向任何可能在进程外恢复后台传输的守护进程（daemon）提供上下文。
++backgroundSessionConfiguration:(NSString *)identifier 的独特之处在于，它会创建一个后台 session。后台 session 不同于常规的，普通的 session，它甚至可以在应用程序挂起，退出或者崩溃的情况下运行上传和下载任务。初始化时指定的标识符，被用于向任何可能在进程外恢复后台传输的守护进程（daemon）提供上下文。  `另外`：NSURLSessionDownloadTask才支持后台下载，NSURLSessionDataTask不支持。
 
 ## 配置属性
 NSURLSessionConfiguration 拥有 20 个配置属性。熟练掌握这些配置属性的用处，可以让应用程序充分地利用其网络环境。
@@ -192,7 +192,7 @@ NSURLSessionDownloadTask *getImageTask = [session
 
 3、代理
 
-跟踪下载进度
+以NSURLSessionDownloadTask为例，如果要用delegate监控下载，创建NSURLSessionDownloadTask的时候不能带completionHandler这个block,跟踪下载进度
 
 ```
 -(void)URLSession:(NSURLSession *)session
