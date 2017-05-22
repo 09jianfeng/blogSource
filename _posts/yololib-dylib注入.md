@@ -160,3 +160,91 @@ xcrun -sdk iphoneos PackageApplication -v DyldHook.app -o ~/Desktop/hooked.ipa
 
 .ipa就打包出来了。放到 fir.im上下载安装。就可以看到hook的效果了。
 
+# 改造微信
+按照上面的流程基本上知道应该怎么改造微信。只是在在重签名微信的时候会有点问题，因为微信是多target的。签名的时候要把多target给一起重签了，最后才能安装上。下面的脚本是从网上copy下来的，别人写的脚本文件，用于做那些需要重复的操作。autoswimfi.sh
+
+[参考](http://yulingtianxia.com/blog/2017/02/28/Make-WeChat-Great-Again/)
+
+1、查找可用的 iPhone 开发者证书
+
+2、解压 ipa 文件
+
+3、拷贝 mobileprovision 文件和要注入的 dylib 文件到 app 文件夹中
+
+4、向 app 中可执行文件的 Load Commands 段中加入一条加载 dylib 的指令  (yololib)
+
+**5、对 app 中所有的 app，appx，framework，dylib 文件用第 1 步获取的证书进行重签名**
+
+6、打包签名好的 ipa 文件
+
+7、删除上述过程中产生的中间文件
+
+8、通过 USB 线安装 ipa 文件手机上 (mobiledevice)
+
+9、autoswimfi.sh 需要传入的三个参数分别为：已砸壳的 ipa 文件，没过期的 mobileprovision 文件，要注入的 dylib 文件。
+
+**autoswimfi.sh 源码**
+
+```
+
+# !/bin/bash
+SOURCEIPA="$1"
+MOBILEPROV="$2"
+DYLIB="$3"
+
+cd ${SOURCEIPA%/*}
+
+# 找到所有证书，输出到cers.txt
+security find-identity -v -p codesigning > cers.txt
+
+# 从cers.txt中读取行，每行作为输入。循环
+while IFS='' read -r line || [[ -n "$line" ]]; do
+		# =~ 用于判断 line中是否包含 iPhone Developer这样的字符串
+    if [[ "$line" =~ "iPhone Developer" ]]; then
+    	# ${#line}是获取line的长度，这句的意思是从 line的47位置开始截取子字符串，长度为总长度-48。赋值给DEVELOPER。
+      DEVELOPER=${line:47:${#line}-48}
+    fi
+done < cers.txt
+
+unzip -qo "$SOURCEIPA" -d extracted
+
+APPLICATION=$(ls extracted/Payload/)
+
+echo "Copying dylib and mobileprovision"
+cp "$DYLIB" "extracted/Payload/$APPLICATION/${DYLIB##*/}"
+cp "$MOBILEPROV" "extracted/Payload/$APPLICATION/embedded.mobileprovision"
+
+echo "Insert dylib into Mach-O file"
+yololib "extracted/Payload/$APPLICATION/${APPLICATION%.*}" "${DYLIB##*/}"
+
+echo "Resigning with certificate: $DEVELOPER"
+find -d extracted  \( -name "*.app" -o -name "*.appex" -o -name "*.framework" -o -name "*.dylib" \) > directories.txt
+security cms -D -i "extracted/Payload/$APPLICATION/embedded.mobileprovision" > t_entitlements_full.plist
+/usr/libexec/PlistBuddy -x -c 'Print:Entitlements' t_entitlements_full.plist > t_entitlements.plist
+while IFS='' read -r line || [[ -n "$line" ]]; do
+    /usr/bin/codesign --continue -f -s "$DEVELOPER" --entitlements "t_entitlements.plist"  "$line"
+done < directories.txt
+
+echo "Creating the Signed IPA"
+cd extracted
+zip -qry ../extracted.ipa *
+cd ..
+
+rm -rf "extracted"
+rm directories.txt
+rm cers.txt
+rm t_entitlements.plist
+rm t_entitlements_full.plist
+
+echo "Installing APP to your iOS Device"
+mobiledevice install_app extracted.ipa
+
+```
+
+
+
+
+
+
+
+

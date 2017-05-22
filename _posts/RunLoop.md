@@ -289,7 +289,7 @@ facebook的开源库，可以在后台进程异步创建 UIView、CALayer。在�
 
 进程间通信，Mach ports <https://segmentfault.com/a/1190000002400329>
 
-
+runtime runloop <http://www.jianshu.com/p/d87efbf427c5>
 
 
 

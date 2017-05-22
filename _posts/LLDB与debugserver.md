@@ -110,6 +110,7 @@ NSLog函数的第一条指令 "SUB SP,SP,#0xC"左边的那个数#0x226038A4,代�
 
  //在函数的起
  **#b function**
+ 
 ```
 (lldb) b NSLog
 Breakpoint 2: where = Foundation`NSLog, address = 0x23c5fb94
@@ -137,24 +138,43 @@ breakpoint 后面那个是断点的序号。逆向工程中大多数是给汇编
 lldb到debugserver， image list -o -f。列出模块偏移地址如下：
 ![lldb3](/img/lldb3.png)
 看到springBoard的偏移是 0x0009c000。 所以 _menuButtonDown:第一条指令的地址就是
+
 ```
 0x0009c000 + 0x00017720 = 0xB3720
 ```
+
 在llDB中输入命令给这个地址下断点：
+
 ```
 (lldb) br s -a 0xB3720
 Breakpoint 1: where = SpringBoard`___lldb_unnamed_function299$$SpringBoard, address = 0x000b3720
 ```
+
 按下Home键触发断点，如图
 ![lldb4](/img/lldb4.png)
+
+
 `注：`r1 寄存器放的是函数第二个参数的名称。第二个参数的名称是函数名。当程序停下来后，可以用
+
 ```
 c
 ```
 命令让程序继续运行.
 
 #### 2、断点命令 
+
+* 设置断点
+
+```
+//给某个地址下断点
+br s -a 0xXXXX
+
+//给某个函数名下断点
+breakpoint set --func-regex
+```
+
 * 禁用断点：
+
 ```
 //禁用所有断点
 (lldb) br dis 
@@ -163,6 +183,7 @@ c
 ```
 
 * 启动断点：
+
 ```
 //启动所有断点
 (lldb) br en
@@ -171,6 +192,7 @@ c
 ```
 
 * 删除断点：
+
 ```
 //删除所有断点
 (lldb) br del
@@ -179,10 +201,13 @@ c
 ```
 
 某个断点触发的时候，执行预先设置的指令，它的用法如下（假设1号断点位于某个objc_msgSend函数上）：
+
 ```
 (lldb) br com add 1
 ```
+
 执行这条命令后会要求我们设置一系列指令，以"Done"结束，如下：
+
 ```
 Enter your debugger command(s).  Type 'DONE' to end.
 > po [$r0 class]
@@ -190,6 +215,8 @@ Enter your debugger command(s).  Type 'DONE' to end.
 > c
 > DONE
 ```
+
+`c`命令是继续执行的意思
 
 #### 3、 print
 打印某处的值。 仍然以[SpringBoard _menuButtonDown:]里的指令为例。
@@ -248,3 +275,20 @@ p打印变量的值， 打印出来默认是十进制的值。  p/t输出二进�
 (lldb) me r -s4 -fx -c8 0x00116080
 (lldb) x -s4 -fx -c8 0x00116080 
 ```
+
+
+# LLDB调试MAC APP
+
+## 运行
+
+直接上命令, 敲入下面的命令。
+
+```
+lldb /Applications/xxx.app
+```
+
+然后输入命令 `r`。就会启动开始run 对应的app。
+
+## 打断点
+
+直接看ida分析出来的地址，貌似没有随机偏移地址。ida上分析的地址是多少就直接打多少地址
