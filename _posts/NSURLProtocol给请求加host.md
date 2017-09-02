@@ -82,6 +82,33 @@ URL Loading System当接收到一个请求，它会去搜索已经注册过的pr
 }
 
 ```
+
+`注` 另外可以调用 urlprotocol的didLoadData来缓存数据
+
+```
+- (void) startLoading {
+    // 这里可以自定义Response返回
+    id<NSURLProtocolClient> client = [self client];
+    NSURLRequest* request = [self request];
+    NSString *pathString = [[request URL] absoluteString];
+    
+    NSString *fileName = [pathString lastPathComponent];
+    
+    NSString *fileToLoad = nil;
+    fileToLoad = [pathString substringFromIndex:7];
+    NSLog(@"%@\n%@", pathString, fileToLoad);
+ 
+    NSData *data = [NSData dataWithContentsOfFile:fileToLoad];
+    
+    NSHTTPURLResponse* response = [[NSHTTPURLResponse alloc] initWithURL:[request URL] statusCode:200 HTTPVersion:@"HTTP/1.1" headerFields:[NSDictionary dictionary]];
+    
+    [client URLProtocol:self didReceiveResponse:response cacheStoragePolicy:NSURLCacheStorageNotAllowed];
+    [client URLProtocol:self didLoadData:data];
+    [client URLProtocolDidFinishLoading:self];
+}
+ 
+```
+
 * NSURLConnectionDataDelegate  URL
 
 ```
