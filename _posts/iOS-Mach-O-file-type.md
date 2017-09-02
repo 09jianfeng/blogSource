@@ -6,6 +6,8 @@ tags: [iOS,逆向]
 
 <https://www.objc.io/issues/6-build-tools/mach-o-executables/>
 
+<http://turingh.github.io/2016/03/07/mach-o%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%88%86%E6%9E%90/>
+
 ```
 % touch helloworld.c
 ```
