@@ -121,6 +121,44 @@ LoadModule php5_module libexec/apache2/libphp5.so
 
 ## 启动mysql
 
+1、去mysql官网下载dmg,安装。
+
+2、在~/.bash_profile 设置环境变量 ，设置后记得执行 `source ~/.bash_profile`生效
+
+```
+export PATH="/usr/local/mysql/bin:$PATH"
+```
+
+3、如果在一开始运行mysql就出现 `access denied for user`
+需要更改密码。
+
+```
+1、先stop 掉mysql
+2、然后 sudo mysqld_safe --skip-grant-tables
+3、然后打开另外一个终端
+
+$ mysql
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 13
+Server version: 5.7.10 MySQL Community Server (GPL)
+
+mysql> use mysql;
+Database changed
+
+mysql> UPDATE mysql.user SET authentication_string=PASSWORD('MyNewPass') WHERE User='root'; 
+ERROR 1054 (42S22): Unknown column 'password' in 'field list'
+
+mysql> FLUSH PRIVILEGES;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> \q
+Bye
+
+```
+
+
+4、退出安全模式。 执行命令 `mysql -u root -p` 然后输入密码。就可以正常使用了
+
 
 ## 附录
 ### nano 命令行
