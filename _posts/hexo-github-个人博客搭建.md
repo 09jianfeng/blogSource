@@ -30,8 +30,7 @@ tags: [工具]
 ```
 deploy:
   type: git
-  repository: git@github.com:你的帐号/你的帐号.github.com.git
-  例如我的：repository: git@github.com:zhongbaitu/zhongbaitu.github.com.git
+  repository: https://github.com/09jianfeng/09jianfeng.github.io.git
   branch: master
 ```
 然后执行命令：
@@ -48,6 +47,10 @@ hexo deploy
 * 执行 hexo deploy 把生成的静态文件push到你的github
 
 去浏览器输入地址  ：  `你的用户名.github.io`，可以看到你创建的hexo blog已经上传到线上环境了
+
+#### 遇到的问题
+
+发布过程如果出现 access denied的话，需要设置一下ssh key
 
  ---
 ## hexo命令生成博客
@@ -75,9 +78,10 @@ hexo d
 
 
 ## 主题
-NexT主题 <http://theme-next.iissnan.com/getting-started.html>
+### NexT主题 
+<http://theme-next.iissnan.com/getting-started.html>
 
-### 标签
+##### 配置标签
 ```
 hexo new page "tags"
 ```
@@ -91,5 +95,7 @@ type: "tags"
 
 跟多信息看 next的 [主题wiki](https://github.com/iissnan/hexo-theme-next/wiki/)
 
+### maupassant 主题
 
+[maupassant](https://www.haomwei.com/technology/maupassant-hexo.html#%E7%BD%91%E7%AB%99%E5%9B%BE%E6%A0%87)
 
